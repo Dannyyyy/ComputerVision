@@ -6,6 +6,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsItem>
 #include <QGraphicsPixmapItem>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -19,15 +20,26 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+//image load
 void MainWindow::on_pushButton_clicked()
 {
-    const QString dirs = QFileDialog::getOpenFileName(0, "Выбор изображения...", "", "*.jpg");
-    QImage image(dirs);
-    QGraphicsScene *scene = new QGraphicsScene(this);
-    ui->graphicsView->setScene(scene);
-    QGraphicsItem *pixmap_item = new QGraphicsPixmapItem(QPixmap::fromImage(image));
-    scene->addItem(pixmap_item);
-    const int height = image.height();
-    const int width = image.width();
-    ui->graphicsView->fitInView(pixmap_item, Qt::KeepAspectRatio);
+    const QString filePath = QFileDialog::getOpenFileName(0, "Выбор изображения...", "", "*.jpg");
+    if(filePath != "")
+    {
+        QImage image(filePath);
+        QGraphicsScene *scene = new QGraphicsScene(this);
+        ui->graphicsView->setScene(scene);
+        QGraphicsItem *pixmap_item = new QGraphicsPixmapItem(QPixmap::fromImage(image));
+        scene->addItem(pixmap_item);
+        const int height = image.height();
+        const int width = image.width();
+        ui->graphicsView->fitInView(pixmap_item, Qt::KeepAspectRatio);
+        picture = make_unique<Picture>(height, width);
+    }
+    else
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Изображение не выбрано.");
+        msgBox.exec();
+    }
 }

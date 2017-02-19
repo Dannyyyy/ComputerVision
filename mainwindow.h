@@ -2,6 +2,10 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <picture.h>
+#include <memory>
+
+using namespace std;
 
 namespace Ui {
 class MainWindow;
@@ -20,6 +24,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    unique_ptr<Picture> picture;
 };
 
 #endif // MAINWINDOW_H
