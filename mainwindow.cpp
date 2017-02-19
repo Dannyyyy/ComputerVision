@@ -35,6 +35,13 @@ void MainWindow::on_pushButton_clicked()
         const int width = image.width();
         ui->graphicsView->fitInView(pixmap_item, Qt::KeepAspectRatio);
         picture = make_unique<Picture>(height, width);
+        for(int i=0;i<height;i++)
+        {
+            for(int j=0;j<width;j++)
+            {
+                //picture->content[i][j] = image.pixel(i,j);
+            }
+        }
     }
     else
     {
