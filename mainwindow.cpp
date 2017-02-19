@@ -7,6 +7,8 @@
 #include <QGraphicsItem>
 #include <QGraphicsPixmapItem>
 #include <QMessageBox>
+#include <QColor>
+#include <QRgb>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -28,18 +30,19 @@ void MainWindow::on_pushButton_clicked()
     {
         QImage image(filePath);
         QGraphicsScene *scene = new QGraphicsScene(this);
-        ui->graphicsView->setScene(scene);
+        ui->graphicsViewInitial->setScene(scene);
         QGraphicsItem *pixmap_item = new QGraphicsPixmapItem(QPixmap::fromImage(image));
         scene->addItem(pixmap_item);
         const int height = image.height();
         const int width = image.width();
-        ui->graphicsView->fitInView(pixmap_item, Qt::KeepAspectRatio);
+        ui->graphicsViewInitial->fitInView(pixmap_item, Qt::KeepAspectRatio);
         picture = make_unique<Picture>(height, width);
         for(int i=0;i<height;i++)
         {
             for(int j=0;j<width;j++)
             {
-                //picture->content[i][j] = image.pixel(i,j);
+                auto intensity = image.pixel(j,i);
+                picture->setIntensity(i,j,qRed(intensity),qGreen(intensity),qBlue(intensity));
             }
         }
     }
@@ -49,4 +52,14 @@ void MainWindow::on_pushButton_clicked()
         msgBox.setText("Изображение не выбрано.");
         msgBox.exec();
     }
+}
+
+void MainWindow::on_pushButton_2_clicked()
+{
+    auto image = picture->getImage();
+    QGraphicsScene *scene = new QGraphicsScene(this);
+    ui->graphicsViewResult->setScene(scene);
+    QGraphicsItem *pixmap_item = new QGraphicsPixmapItem(QPixmap::fromImage(image));
+    scene->addItem(pixmap_item);
+    ui->graphicsViewResult->fitInView(pixmap_item, Qt::KeepAspectRatio);
 }

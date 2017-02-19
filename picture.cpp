@@ -1,3 +1,5 @@
+#include <QImage>
+#include <QRgb>
 #include <picture.h>
 
 Picture::Picture(){
@@ -6,8 +8,29 @@ Picture::Picture(){
     this->content = nullptr;
 }
 
-Picture::Picture(const int width, const int height){
+Picture::Picture(const int height, const int width){
     this->width = width;
     this->height = height;
-    this->content = make_unique<double []>(width * height);
+    this->content = make_unique<double []>(height * width);
+}
+
+void Picture::setIntensity(const int x, const int y, const int redColor, const int greenColor, const int blueColor){
+    this->content[(this->height * y) + x] = (0,213*redColor + 0,715*greenColor + 0,072*blueColor)/255;
+}
+
+double Picture::getIntensity(const int x, const int y){
+    return this->content[(this->height * y) + x];
+}
+
+QImage Picture::getImage(){
+    const int height = this->getHeight();
+    const int width = this->getWidth();
+    QImage image = QImage(width, height, QImage::Format_RGB32);
+    for (int x = 0; x < height; x++) {
+       for (int y = 0; y < width; y++) {
+               int intensity = (int) (this->getIntensity(x, y) * 255);
+               image.setPixel(y, x, qRgb(intensity, intensity, intensity));
+       }
+    }
+    return image;
 }
