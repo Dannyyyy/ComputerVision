@@ -26,7 +26,6 @@ MainWindow::~MainWindow()
 //image load
 void MainWindow::on_pushButton_clicked()
 {
-    auto picFiltr = PictureFilter::getSobelGY();
     const QString filePath = QFileDialog::getOpenFileName(0, "Выбор изображения...", "", "*.jpg");
     if(filePath != "")
     {
@@ -47,6 +46,8 @@ void MainWindow::on_pushButton_clicked()
                 picture->setIntensity(i,j,qRed(intensity),qGreen(intensity),qBlue(intensity));
             }
         }
+        auto pictureSobelX = picture->useFilter(*PictureFilter::getSobelGX());
+        pictureSobelX->saveImage("sobelX");
     }
     else
     {

@@ -5,12 +5,12 @@
 
 using namespace std;
 
-class PictureFilterData{
+class PictureFilterContent{
 public:
     int height;
     int width;
     unique_ptr<double []> content;
-    PictureFilterData(int height, int width){
+    PictureFilterContent(int height, int width){
         this->height = height;
         this->width = width;
         this->content = make_unique<double []>(height * width);
@@ -19,8 +19,8 @@ public:
 
 class PictureFilter{
 public:
-    static unique_ptr<PictureFilterData> getSobelGX();
-    static unique_ptr<PictureFilterData> getSobelGY();
+    static unique_ptr<PictureFilterContent> getSobelGX();
+    static unique_ptr<PictureFilterContent> getSobelGY();
 };
 
 #endif // PICTUREFILTER_H
