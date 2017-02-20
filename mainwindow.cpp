@@ -9,6 +9,7 @@
 #include <QMessageBox>
 #include <QColor>
 #include <QRgb>
+#include <picturefilter.h>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -25,6 +26,7 @@ MainWindow::~MainWindow()
 //image load
 void MainWindow::on_pushButton_clicked()
 {
+    auto picFiltr = PictureFilter::getSobelGY();
     const QString filePath = QFileDialog::getOpenFileName(0, "Выбор изображения...", "", "*.jpg");
     if(filePath != "")
     {

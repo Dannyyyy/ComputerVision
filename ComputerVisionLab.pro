@@ -25,9 +25,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    picture.cpp
+    picture.cpp \
+    picturefilter.cpp
 
 HEADERS  += mainwindow.h \
-    picture.h
+    picture.h \
+    picturefilter.h
 
 FORMS    += mainwindow.ui
