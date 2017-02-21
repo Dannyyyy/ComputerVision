@@ -2,6 +2,7 @@
 #include <QRgb>
 #include <picture.h>
 #include <picturefilter.h>
+#include <math.h>
 
 Picture::Picture(){
     this->width = 0;
@@ -67,4 +68,41 @@ unique_ptr<Picture> Picture::useFilter(const PictureFilterContent &pictureFilter
 void Picture::saveImage(QString fileName){
     QImage image = this->getImage();
     image.save("C:\\AGTU\\pictures\\" + fileName + ".jpg", "jpg");
+}
+
+unique_ptr<Picture> Picture::calculationGradient(const Picture &sobelX, const Picture &sobelY){
+    const int height = sobelX.height;
+    const int width = sobelX.width;
+    auto resultPicture = make_unique<Picture>(height,width);
+    for(int x = 0;x<height;x++)
+    {
+        for(int y=0;y<width;y++)
+        {
+            double sobelXIntensity = sobelX.content[(height * y) + x];
+            double sobelYIntensity = sobelY.content[(height * y) + x];
+            double resultIntensity = sqrt(pow(sobelXIntensity,2)+(sobelYIntensity,2));
+            resultPicture->setIntensity(x, y, resultIntensity);
+        }
+    }
+    return resultPicture;
+}
+
+void Picture::pictureNormalize(){
+    const int height = this->getHeight();
+    const int width = this->getWidth();
+    auto minIntensity = min_element(&this->content[0], &this->content[height*width]);
+    auto maxIntensity = max_element(&this->content[0], &this->content[height*width]);
+    double normalizeValue = *maxIntensity - *minIntensity;
+    if(normalizeValue == 0){
+        normalizeValue = 1;
+    }
+    for(int x = 0;x<height;x++)
+    {
+        for(int y=0;y<width;y++)
+        {
+            double intensity = this->getIntensity(x,y);
+            intensity = (intensity - *minIntensity)/normalizeValue;
+            this->setIntensity(x, y, intensity);
+        }
+    }
 }

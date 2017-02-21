@@ -24,5 +24,7 @@ public:
     QImage getImage();
     unique_ptr<Picture> useFilter(const PictureFilterContent &pictureFilterContent);
     void saveImage(QString fileName);
+    static unique_ptr<Picture> calculationGradient(const Picture &sobelX, const Picture &sobelY);
+    void pictureNormalize();
 };
 #endif // PICTURE_H

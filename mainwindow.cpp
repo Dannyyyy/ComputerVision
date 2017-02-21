@@ -29,25 +29,38 @@ void MainWindow::on_pushButton_clicked()
     const QString filePath = QFileDialog::getOpenFileName(0, "Выбор изображения...", "", "*.jpg");
     if(filePath != "")
     {
-        QImage image(filePath);
-        QGraphicsScene *scene = new QGraphicsScene(this);
-        ui->graphicsViewInitial->setScene(scene);
-        QGraphicsItem *pixmap_item = new QGraphicsPixmapItem(QPixmap::fromImage(image));
-        scene->addItem(pixmap_item);
-        const int height = image.height();
-        const int width = image.width();
-        ui->graphicsViewInitial->fitInView(pixmap_item, Qt::KeepAspectRatio);
+        QImage imageInitial(filePath);
+        QGraphicsScene *sceneInitial = new QGraphicsScene(this);
+        ui->graphicsViewInitial->setScene(sceneInitial);
+        QGraphicsItem *pixmapItemInitial = new QGraphicsPixmapItem(QPixmap::fromImage(imageInitial));
+        sceneInitial->addItem(pixmapItemInitial);
+        const int height = imageInitial.height();
+        const int width = imageInitial.width();
+        ui->graphicsViewInitial->fitInView(pixmapItemInitial, Qt::KeepAspectRatio);
         picture = make_unique<Picture>(height, width);
         for(int i=0;i<height;i++)
         {
             for(int j=0;j<width;j++)
             {
-                auto intensity = image.pixel(j,i);
+                auto intensity = imageInitial.pixel(j,i);
                 picture->setIntensity(i,j,qRed(intensity),qGreen(intensity),qBlue(intensity));
             }
         }
         auto pictureSobelX = picture->useFilter(*PictureFilter::getSobelGX());
         pictureSobelX->saveImage("sobelX");
+        auto pictureSobelY = picture->useFilter(*PictureFilter::getSobelGY());
+        pictureSobelY->saveImage("sobelY");
+        auto pictureSobel = Picture::calculationGradient(*pictureSobelX,*pictureSobelY);
+        pictureSobel->pictureNormalize();
+        pictureSobel->saveImage("sobel");
+        //
+        auto imageResult = pictureSobel->getImage();
+        QGraphicsScene *sceneResult = new QGraphicsScene(this);
+        ui->graphicsViewResult->setScene(sceneResult);
+        QGraphicsItem *pixmapItemResult = new QGraphicsPixmapItem(QPixmap::fromImage(imageResult));
+        sceneResult->addItem(pixmapItemResult);
+        ui->graphicsViewResult->fitInView(pixmapItemResult, Qt::KeepAspectRatio);
+
     }
     else
     {
@@ -55,14 +68,4 @@ void MainWindow::on_pushButton_clicked()
         msgBox.setText("Изображение не выбрано.");
         msgBox.exec();
     }
-}
-
-void MainWindow::on_pushButton_2_clicked()
-{
-    auto image = picture->getImage();
-    QGraphicsScene *scene = new QGraphicsScene(this);
-    ui->graphicsViewResult->setScene(scene);
-    QGraphicsItem *pixmap_item = new QGraphicsPixmapItem(QPixmap::fromImage(image));
-    scene->addItem(pixmap_item);
-    ui->graphicsViewResult->fitInView(pixmap_item, Qt::KeepAspectRatio);
 }
