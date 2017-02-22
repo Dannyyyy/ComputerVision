@@ -21,7 +21,7 @@ void Picture::setIntensity(const int x, const int y, const double intensity){
 }
 
 void Picture::setIntensity(const int x, const int y, const int redColor, const int greenColor, const int blueColor){
-    this->content[(this->height * y) + x] = (0,213*redColor + 0,715*greenColor + 0,072*blueColor)/255;
+    this->content[(this->height * y) + x] = (0.213*redColor + 0.715*greenColor + 0.072*blueColor)/255.;
 }
 
 double Picture::getIntensity(const int x, const int y){
@@ -53,10 +53,10 @@ unique_ptr<Picture> Picture::useFilter(const PictureFilterContent &pictureFilter
         for (int x = 0; x < height; x++) {
             for (int y = 0; y < width; y++) {
                 double resultIntensity = 0;
-                for (int pictureFilterContentPositionX = 0; pictureFilterContentPositionX < pictureFilterContent.width; pictureFilterContentPositionX++) {
-                    for (int pictureFilterContentPositionY = 0; pictureFilterContentPositionY < pictureFilterContent.height; pictureFilterContentPositionY++) {
-                        resultIntensity += this->getIntensity(x - pictureFilterContentPositionX + pictureFilterContent.width / 2, y - pictureFilterContentPositionY + pictureFilterContent.height / 2)
-                                  * pictureFilterContent.content[(pictureFilterContentPositionY * pictureFilterContent.width) + pictureFilterContentPositionX];
+                for (int dX = 0; dX < pictureFilterContent.width; dX++) {
+                    for (int dY = 0; dY < pictureFilterContent.height; dY++) {
+                        resultIntensity += this->getIntensity(x - dX + pictureFilterContent.width / 2, y - dY + pictureFilterContent.height / 2)
+                                  * pictureFilterContent.content[(dY * pictureFilterContent.width) + dX];
                     }
                 }
                 resultPicture->setIntensity(x, y, resultIntensity);
@@ -80,7 +80,7 @@ unique_ptr<Picture> Picture::calculationGradient(const Picture &sobelX, const Pi
         {
             double sobelXIntensity = sobelX.content[(height * y) + x];
             double sobelYIntensity = sobelY.content[(height * y) + x];
-            double resultIntensity = sqrt(pow(sobelXIntensity,2)+(sobelYIntensity,2));
+            double resultIntensity = sqrt(pow(sobelXIntensity,2)+pow(sobelYIntensity,2));
             resultPicture->setIntensity(x, y, resultIntensity);
         }
     }
