@@ -9,7 +9,7 @@ unique_ptr<PictureFilterContent> PictureFilter::getSobelGX(){
 
 unique_ptr<PictureFilterContent> PictureFilter::getSobelGY(){
         auto pictureFilterContent = make_unique<PictureFilterContent>(3,3);
-        double sobelGYContent[9] = { -1, -2, 1, 0, 0, 0, 1, 2, 1 };
+        double sobelGYContent[9] = { -1, -2, -1, 0, 0, 0, 1, 2, 1 };
         copy(begin(sobelGYContent), end(sobelGYContent), pictureFilterContent->content.get());
         return pictureFilterContent;
 }

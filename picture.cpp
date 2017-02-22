@@ -21,10 +21,10 @@ void Picture::setIntensity(const int x, const int y, const double intensity){
 }
 
 void Picture::setIntensity(const int x, const int y, const int redColor, const int greenColor, const int blueColor){
-    this->content[(this->height * y) + x] = (0.213*redColor + 0.715*greenColor + 0.072*blueColor)/255.;
+    this->content[(this->height * y) + x] = (0.213*redColor + 0.715*greenColor + 0.072*blueColor)/255;
 }
 
-double Picture::getIntensity(const int x, const int y){
+double Picture::getIntensity(const int x, const int y) const {
     // все "снаружи" нулевые(черные)
     if(y < 0 || y >= this->width || x < 0 || x >= this->height)
     {
@@ -47,16 +47,23 @@ QImage Picture::getImage(){
 }
 
 unique_ptr<Picture> Picture::useFilter(const PictureFilterContent &pictureFilterContent){
-    const int height = this->getHeight();
-    const int width = this->getWidth();
-    auto resultPicture = make_unique<Picture>(height, width);
-        for (int x = 0; x < height; x++) {
-            for (int y = 0; y < width; y++) {
+    const int heightPicture = this->getHeight();
+    const int widthPicture = this->getWidth();
+
+    const int widthFilter = pictureFilterContent.getWidth();
+    const int heightFilter = pictureFilterContent.getHeight();
+
+    const int centerWidthFilter = widthFilter / 2;
+    const int centerHeightFilter = heightFilter / 2;
+
+    auto resultPicture = make_unique<Picture>(heightPicture, widthPicture);
+        for (int x = 0; x < heightPicture; x++) {
+            for (int y = 0; y < widthPicture; y++) {
                 double resultIntensity = 0;
-                for (int dX = 0; dX < pictureFilterContent.width; dX++) {
-                    for (int dY = 0; dY < pictureFilterContent.height; dY++) {
-                        resultIntensity += this->getIntensity(x - dX + pictureFilterContent.width / 2, y - dY + pictureFilterContent.height / 2)
-                                  * pictureFilterContent.content[(dY * pictureFilterContent.width) + dX];
+                for (int dX = 0; dX < widthFilter; dX++) {
+                    for (int dY = 0; dY < heightFilter; dY++) {
+                        resultIntensity += this->getIntensity(x - dX + centerWidthFilter, y - dY + centerHeightFilter)
+                                  * pictureFilterContent.getContentCell(dX,dY);
                     }
                 }
                 resultPicture->setIntensity(x, y, resultIntensity);
@@ -71,15 +78,15 @@ void Picture::saveImage(QString fileName){
 }
 
 unique_ptr<Picture> Picture::calculationGradient(const Picture &sobelX, const Picture &sobelY){
-    const int height = sobelX.height;
-    const int width = sobelX.width;
+    const int height = sobelX.getHeight();
+    const int width = sobelX.getWidth();
     auto resultPicture = make_unique<Picture>(height,width);
     for(int x = 0;x<height;x++)
     {
         for(int y=0;y<width;y++)
         {
-            double sobelXIntensity = sobelX.content[(height * y) + x];
-            double sobelYIntensity = sobelY.content[(height * y) + x];
+            double sobelXIntensity = sobelX.getIntensity(x,y);
+            double sobelYIntensity = sobelY.getIntensity(x,y);
             double resultIntensity = sqrt(pow(sobelXIntensity,2)+pow(sobelYIntensity,2));
             resultPicture->setIntensity(x, y, resultIntensity);
         }
@@ -93,16 +100,15 @@ void Picture::pictureNormalize(){
     auto minIntensity = min_element(&this->content[0], &this->content[height*width]);
     auto maxIntensity = max_element(&this->content[0], &this->content[height*width]);
     double normalizeValue = *maxIntensity - *minIntensity;
-    if(normalizeValue == 0){
-        normalizeValue = 1;
-    }
-    for(int x = 0;x<height;x++)
-    {
-        for(int y=0;y<width;y++)
+    if(normalizeValue != 0.) {
+        for(int x = 0;x<height;x++)
         {
-            double intensity = this->getIntensity(x,y);
-            intensity = (intensity - *minIntensity)/normalizeValue;
-            this->setIntensity(x, y, intensity);
+            for(int y=0;y<width;y++)
+            {
+                double intensity = this->getIntensity(x,y);
+                double newintensity = (intensity - *minIntensity)/normalizeValue;
+                this->setIntensity(x, y, newintensity);
+            }
         }
     }
 }
