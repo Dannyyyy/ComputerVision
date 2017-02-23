@@ -25,6 +25,9 @@ class PictureFilter{
 public:
     static unique_ptr<PictureFilterContent> getSobelGX();
     static unique_ptr<PictureFilterContent> getSobelGY();
+    static unique_ptr<PictureFilterContent> getGaussX(double sigma);
+    static unique_ptr<PictureFilterContent> getGaussY(double sigma);
+    static unique_ptr<PictureFilterContent> getGaussXY(double sigma);
 };
 
 #endif // PICTUREFILTER_H
