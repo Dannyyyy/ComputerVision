@@ -106,9 +106,42 @@ void Picture::pictureNormalize(){
             for(int y=0;y<width;y++)
             {
                 double intensity = this->getIntensity(x,y);
-                double newintensity = (intensity - *minIntensity)/normalizeValue;
-                this->setIntensity(x, y, newintensity);
+                double normalizeIntensity = (intensity - *minIntensity)/normalizeValue;
+                this->setIntensity(x, y, normalizeIntensity);
             }
         }
     }
+}
+
+unique_ptr<Picture> Picture::getPictureNormalize(){
+    const int height = this->getHeight();
+    const int width = this->getWidth();
+    auto minIntensity = min_element(&this->content[0], &this->content[height*width]);
+    auto maxIntensity = max_element(&this->content[0], &this->content[height*width]);
+    double normalizeValue = *maxIntensity - *minIntensity;
+    auto resultPicture = make_unique<Picture>(height,width);
+    if(normalizeValue != 0.) {
+        for(int x = 0;x<height;x++)
+        {
+            for(int y=0;y<width;y++)
+            {
+                double intensity = this->getIntensity(x,y);
+                double normalizeIntensity = (intensity - *minIntensity)/normalizeValue;
+                resultPicture->setIntensity(x, y, normalizeIntensity);
+            }
+        }
+
+    }
+    else
+    {
+        for(int x = 0;x<height;x++)
+        {
+            for(int y=0;y<width;y++)
+            {
+                double intensity = this->getIntensity(x,y);
+                resultPicture->setIntensity(x, y, intensity);
+            }
+        }
+    }
+    return resultPicture;
 }

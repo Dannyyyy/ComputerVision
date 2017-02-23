@@ -54,8 +54,9 @@ void MainWindow::on_pushButton_clicked()
         pictureSobel->pictureNormalize();
         pictureSobel->saveImage("sobel");
         //
-        auto pictureGaussXY = picture->useFilter(*PictureFilter::getGaussXY(5));
-        pictureGaussXY->saveImage("gauss");
+        auto pictureGauss = picture->useFilter(*PictureFilter::getGaussX(5));
+        pictureGauss = pictureGauss->useFilter(*PictureFilter::getGaussY(5));
+        pictureGauss->saveImage("gauss");
         //
         auto imageResult = pictureSobel->getImage();
         QGraphicsScene *sceneResult = new QGraphicsScene(this);

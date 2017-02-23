@@ -26,5 +26,6 @@ public:
     void saveImage(QString fileName);
     static unique_ptr<Picture> calculationGradient(const Picture &sobelX, const Picture &sobelY);
     void pictureNormalize();
+    unique_ptr<Picture> getPictureNormalize();
 };
 #endif // PICTURE_H
