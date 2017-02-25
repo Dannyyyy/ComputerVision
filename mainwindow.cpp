@@ -10,6 +10,7 @@
 #include <QColor>
 #include <QRgb>
 #include <picturefilter.h>
+#include <border.h>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -46,16 +47,16 @@ void MainWindow::on_pushButton_clicked()
                 picture->setIntensity(i,j,qRed(intensity),qGreen(intensity),qBlue(intensity));
             }
         }
-        auto pictureSobelX = picture->useFilter(*PictureFilter::getSobelGX());
+        auto pictureSobelX = picture->useFilter(*PictureFilter::getSobelGX(),BorderMode::WrapPicture);
         pictureSobelX->saveImage("sobelX");
-        auto pictureSobelY = picture->useFilter(*PictureFilter::getSobelGY());
+        auto pictureSobelY = picture->useFilter(*PictureFilter::getSobelGY(),BorderMode::WrapPicture);
         pictureSobelY->saveImage("sobelY");
         auto pictureSobel = Picture::calculationGradient(*pictureSobelX,*pictureSobelY);
         pictureSobel->pictureNormalize();
         pictureSobel->saveImage("sobel");
         //
-        auto pictureGauss = picture->useFilter(*PictureFilter::getGaussX(5));
-        pictureGauss = pictureGauss->useFilter(*PictureFilter::getGaussY(5));
+        auto pictureGauss = picture->useFilter(*PictureFilter::getGaussX(5),BorderMode::WrapPicture);
+        pictureGauss = pictureGauss->useFilter(*PictureFilter::getGaussY(5),BorderMode::WrapPicture);
         pictureGauss->saveImage("gauss");
         //
         auto imageResult = pictureSobel->getImage();

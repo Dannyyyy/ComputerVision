@@ -30,6 +30,7 @@ SOURCES += main.cpp\
 
 HEADERS  += mainwindow.h \
     picture.h \
-    picturefilter.h
+    picturefilter.h \
+    border.h
 
 FORMS    += mainwindow.ui

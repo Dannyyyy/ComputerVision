@@ -33,6 +33,21 @@ double Picture::getIntensity(const int x, const int y) const {
     return this->content[(this->height * y) + x];
 }
 
+double Picture::getIntensity(const int x, const int y, BorderMode borderMode) const {
+    switch(borderMode){
+        case BorderMode::OutsideBlack : return this->getOutsideBlack(x,y);
+                                        break;
+        case BorderMode::CopyBorderValue: return this->getCopyBoarderValue(x,y);
+                                        break;
+        case BorderMode::ReflectBorderValue: return this->getReflectBoarderValue(x,y);
+                                        break;
+        case BorderMode::WrapPicture: return this->getWrapPicture(x,y);
+                                    break;
+        default: this->getOutsideBlack(x,y);
+                break;
+    }
+}
+
 QImage Picture::getImage(){
     const int height = this->getHeight();
     const int width = this->getWidth();
@@ -46,7 +61,7 @@ QImage Picture::getImage(){
     return image;
 }
 
-unique_ptr<Picture> Picture::useFilter(const PictureFilterContent &pictureFilterContent){
+unique_ptr<Picture> Picture::useFilter(const PictureFilterContent &pictureFilterContent, BorderMode borderMode){
     const int heightPicture = this->getHeight();
     const int widthPicture = this->getWidth();
 
@@ -62,7 +77,7 @@ unique_ptr<Picture> Picture::useFilter(const PictureFilterContent &pictureFilter
                 double resultIntensity = 0;
                 for (int dX = 0; dX < widthFilter; dX++) {
                     for (int dY = 0; dY < heightFilter; dY++) {
-                        resultIntensity += this->getIntensity(x - dX + centerWidthFilter, y - dY + centerHeightFilter)
+                        resultIntensity += this->getIntensity(x - dX + centerWidthFilter, y - dY + centerHeightFilter, borderMode)
                                   * pictureFilterContent.getContentCell(dX,dY);
                     }
                 }
@@ -145,3 +160,87 @@ unique_ptr<Picture> Picture::getPictureNormalize(){
     }
     return resultPicture;
 }
+
+double Picture::getOutsideBlack(const int x, const int y) const {
+    if(y < 0 || y >= this->width || x < 0 || x >= this->height)
+    {
+        return 0;
+    }
+    else
+    {
+        return this->getIntensity(x,y);
+    }
+}
+
+double Picture::getCopyBoarderValue(const int x, const int y) const {
+    const int maxY = max(0, y);
+    const int resultY = min(maxY,this->getWidth()-1);
+    const int maxX = max(0, x);
+    const int resultX = min(maxX,this->getHeight()-1);
+    return this->getIntensity(resultX, resultY);
+}
+
+double Picture::getReflectBoarderValue(const int x, const int y) const {
+    int resultX = 0;
+    int resultY = 0;
+    int const width = this->getWidth();
+    if(y>=width)
+    {
+        resultY = 2*(width - 1) - y;
+    }
+    else
+    {
+        resultY = abs(y);
+    }
+    int const height = this->getHeight();
+    if(x>=height)
+    {
+        resultX = 2*(height - 1) - x;
+    }
+    else
+    {
+        resultX = abs(x);
+    }
+    return this->getIntensity(resultX, resultY);
+}
+
+double Picture::getWrapPicture(const int x, const int y) const {
+    int resultX = 0;
+    int resultY = 0;
+    int const width = this->getWidth();
+    if(y>=width || y<0)
+    {
+        if(y>=width)
+        {
+            resultY = y - width;
+        }
+        else
+        {
+            resultY = width - 1 - abs(y);
+        }
+
+    }
+    else
+    {
+        resultY = y;
+    }
+    if(x>=height || x<0)
+    {
+        if(x>=height)
+        {
+            resultX = x - height;
+        }
+        else
+        {
+            resultX = height - 1 - abs(x);
+        }
+
+    }
+    else
+    {
+        resultX = x;
+    }
+    return this->getIntensity(resultX, resultY);
+}
+
+
