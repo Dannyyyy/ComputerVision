@@ -11,6 +11,7 @@
 #include <QRgb>
 #include <picturefilter.h>
 #include <border.h>
+#include <gaussianpyramid.h>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -22,6 +23,28 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::lab1(){
+    // Собель
+    auto pictureSobelX = picture->useFilter(*PictureFilter::getSobelGX(),BorderMode::ReflectBorderValue);
+    pictureSobelX->saveImage("sobelX");
+    auto pictureSobelY = picture->useFilter(*PictureFilter::getSobelGY(),BorderMode::ReflectBorderValue);
+    pictureSobelY->saveImage("sobelY");
+    auto pictureSobel = Picture::calculationGradient(*pictureSobelX,*pictureSobelY);
+    pictureSobel->pictureNormalize();
+    pictureSobel->saveImage("sobel");
+    // Гаусс
+    auto pictureGauss = picture->useFilter(*PictureFilter::getGaussX(5),BorderMode::ReflectBorderValue);
+    pictureGauss = pictureGauss->useFilter(*PictureFilter::getGaussY(5),BorderMode::ReflectBorderValue);
+    pictureGauss->saveImage("gauss");
+    //
+    auto imageResult = pictureSobel->getImage();
+    QGraphicsScene *sceneResult = new QGraphicsScene(this);
+    ui->graphicsViewResult->setScene(sceneResult);
+    QGraphicsItem *pixmapItemResult = new QGraphicsPixmapItem(QPixmap::fromImage(imageResult));
+    sceneResult->addItem(pixmapItemResult);
+    ui->graphicsViewResult->fitInView(pixmapItemResult, Qt::KeepAspectRatio);
 }
 
 //image load
@@ -47,25 +70,9 @@ void MainWindow::on_pushButton_clicked()
                 picture->setIntensity(i,j,qRed(intensity),qGreen(intensity),qBlue(intensity));
             }
         }
-        auto pictureSobelX = picture->useFilter(*PictureFilter::getSobelGX(),BorderMode::WrapPicture);
-        pictureSobelX->saveImage("sobelX");
-        auto pictureSobelY = picture->useFilter(*PictureFilter::getSobelGY(),BorderMode::WrapPicture);
-        pictureSobelY->saveImage("sobelY");
-        auto pictureSobel = Picture::calculationGradient(*pictureSobelX,*pictureSobelY);
-        pictureSobel->pictureNormalize();
-        pictureSobel->saveImage("sobel");
-        //
-        auto pictureGauss = picture->useFilter(*PictureFilter::getGaussX(5),BorderMode::WrapPicture);
-        pictureGauss = pictureGauss->useFilter(*PictureFilter::getGaussY(5),BorderMode::WrapPicture);
-        pictureGauss->saveImage("gauss");
-        //
-        auto imageResult = pictureSobel->getImage();
-        QGraphicsScene *sceneResult = new QGraphicsScene(this);
-        ui->graphicsViewResult->setScene(sceneResult);
-        QGraphicsItem *pixmapItemResult = new QGraphicsPixmapItem(QPixmap::fromImage(imageResult));
-        sceneResult->addItem(pixmapItemResult);
-        ui->graphicsViewResult->fitInView(pixmapItemResult, Qt::KeepAspectRatio);
-
+        lab1();
+        // начало 2-ой лабораторной
+        //auto pyramid = new GaussianPyramid(*picture,5);
     }
     else
     {

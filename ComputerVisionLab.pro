@@ -26,11 +26,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += main.cpp\
         mainwindow.cpp \
     picture.cpp \
-    picturefilter.cpp
+    picturefilter.cpp \
+    gaussianpyramid.cpp
 
 HEADERS  += mainwindow.h \
     picture.h \
     picturefilter.h \
-    border.h
+    border.h \
+    gaussianpyramid.h
 
 FORMS    += mainwindow.ui
