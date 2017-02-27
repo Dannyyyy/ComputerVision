@@ -243,4 +243,21 @@ double Picture::getWrapPicture(const int x, const int y) const {
     return this->getIntensity(resultX, resultY);
 }
 
+unique_ptr<Picture> Picture::scalePicture(){
+    const int halfHeight = this->getHeight()/2;
+    const int halfWidth = this->getWidth()/2;
+
+    auto resultPicture = make_unique<Picture>(halfHeight, halfWidth);
+    for(int x=0;x<halfHeight;x++){
+        for(int y=0;y<halfWidth;y++){
+            double scaleIntensity = (this->getIntensity(x*2,y*2,BorderMode::ReflectBorderValue)+
+                                    this->getIntensity(x*2,y*2+1,BorderMode::ReflectBorderValue)+
+                                    this->getIntensity(x*2+1,y*2,BorderMode::ReflectBorderValue)+
+                                    this->getIntensity(x*2+1,y*2+1,BorderMode::ReflectBorderValue))/4.;
+            resultPicture->setIntensity(x,y,scaleIntensity);
+        }
+    }
+    return resultPicture;
+}
+
 

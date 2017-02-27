@@ -33,5 +33,6 @@ public:
     double getCopyBoarderValue(const int x, const int y) const;
     double getReflectBoarderValue(const int x, const int y) const;
     double getWrapPicture(const int x, const int y) const;
+    unique_ptr<Picture> scalePicture();
 };
 #endif // PICTURE_H
