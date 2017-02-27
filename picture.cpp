@@ -260,4 +260,19 @@ unique_ptr<Picture> Picture::scalePicture(){
     return resultPicture;
 }
 
+Picture::Picture(Picture &picture){
+    this->height = picture.getHeight();
+    this->width = picture.getWidth();
+    content = make_unique<double []>((size_t) (width * height));
+    for (int i = 0; i < width * height; ++i)
+        content[i] = picture.content[i];
+}
+
+Picture &Picture::operator=(Picture &&otherPicture) {
+    this->width = otherPicture.getWidth();
+    this->height = otherPicture.getHeight();
+    this->content = move(otherPicture.content);
+    return *this;
+}
+
 

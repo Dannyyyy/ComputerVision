@@ -34,5 +34,8 @@ public:
     double getReflectBoarderValue(const int x, const int y) const;
     double getWrapPicture(const int x, const int y) const;
     unique_ptr<Picture> scalePicture();
+
+    Picture(Picture &picture);
+    Picture& operator=(Picture&& otherPicture);
 };
 #endif // PICTURE_H

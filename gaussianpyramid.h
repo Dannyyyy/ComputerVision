@@ -11,21 +11,25 @@ public:
     Level(Picture &picture){
         this->picture = move(picture);
     }
-    void setPicture(Picture &picture){
-        this->picture = move(picture);
-    }
     void outputPicture(){
         this->picture.saveImage("Level");
     }
 };
 
+class Octave{
+public:
+    vector<Level> levels;
+};
+
 class GaussianPyramid{
+    int countOctaves;
     int countLevelsInOctave;
     double initialSigma;
     double zeroSigma;
     double k;
 public:
-    GaussianPyramid(Picture &picture, int numberLevelsInOctave);
+    vector<Octave> octaves;
+    GaussianPyramid(Picture &picture, int numberOctaves, int numberLevelsInOctave);
 };
 
 #endif // GAUSSIANPYRAMID_H
