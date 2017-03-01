@@ -1,54 +1,54 @@
 #include <gaussianpyramid.h>
 
-GaussianPyramid::GaussianPyramid(Picture &picture,int numberOctaves, int numberLevelsInOctave){
-    this->initialSigma = 0.5;
-    this->zeroSigma = 1.6;
-    this->countOctaves = numberOctaves;
-    this->countLevelsInOctave = numberLevelsInOctave;
-    this->k = pow(2,(1./this->countLevelsInOctave));
-
-    for(int i=0;i<this->countOctaves;i++)
-    {
-        this->octaves.emplace_back(Octave());
-    }
-
-    double deltaSigma = this->calculationDeltaSigma(this->zeroSigma, this->initialSigma);
-    auto initialPicture = picture.useFilter(*PictureFilter::getGaussXY(deltaSigma),BorderMode::ReflectBorderValue);
-    auto firstLevel = Level(*initialPicture);
-    firstLevel.setCurrentSigma(this->zeroSigma);
-    this->octaves[0].levels.emplace_back(firstLevel);
-    for(int i = 0; i < this->countOctaves; i++) {
-        for (int j = 0; j <= this->countLevelsInOctave; j++) {
-            if (j == 0) {
-                if (i != 0) {
-                    auto level = Level(*octaves[i-1].levels[this->countLevelsInOctave].picture.scalePicture());
-                    level.setCurrentSigma(octaves[i-1].levels[this->countLevelsInOctave].getCurrentSigma()/2);
-                    this->octaves[i].levels.emplace_back(level);
-                }
-            }
-            else {
-                auto level = Level();
-                level.setCurrentSigma(this->multiplySigmaToK(octaves[i].levels[j-1].getCurrentSigma()));
-                deltaSigma = this->calculationDeltaSigma(level.getCurrentSigma(),octaves[i].levels[j-1].getCurrentSigma());
-                auto levelPicture = octaves[i].levels[j-1].picture.useFilter(*PictureFilter::getGaussXY(deltaSigma),BorderMode::ReflectBorderValue);
-                level.setPicture(*levelPicture);
-                this->octaves[i].levels.emplace_back(level);
-            }
-        }
-    }
-    for(int i = 0; i < this->countOctaves; i++) {
-        for (int j = 0; j <= this->countLevelsInOctave; j++) {
-            this->octaves[i].levels[j].outputPicture(i,j);
-        }
-    }
-}
-
-double GaussianPyramid::calculationDeltaSigma(double firstSigma, double secondSigma){
+static double calculationDeltaSigma(double firstSigma, double secondSigma){
     double deltaSigma = sqrt(pow(firstSigma,2) - pow(secondSigma,2));
     return deltaSigma;
 }
 
-double GaussianPyramid::multiplySigmaToK(double sigma){
-    double resultSigma = sigma * this->k;
-    return resultSigma;
+GaussianPyramid::GaussianPyramid(Picture &picture,int numberOctaves, int numberLevelsInOctave){
+    initialSigma = 0.5;
+    zeroSigma = 1.6;
+    countOctaves = numberOctaves;
+    countLevelsInOctave = numberLevelsInOctave;
+    k = pow(2,(1./this->countLevelsInOctave));
+
+    octaves.resize(countOctaves);
+
+    double deltaSigma = calculationDeltaSigma(zeroSigma, initialSigma);
+    auto initialPicture = picture.useFilter(*PictureFilter::getGaussXY(deltaSigma),BorderMode::ReflectBorderValue);
+    auto firstLevel = Level();
+    firstLevel.picture = move(*initialPicture);
+    firstLevel.currentSigma = this->zeroSigma;
+    octaves[0].emplace_back(move(firstLevel));
+    for(int i = 0; i < countOctaves; i++) {
+        for (int j = 0; j <= countLevelsInOctave; j++) {
+            if (j == 0) {
+                if (i != 0) {
+                    auto level = Level();
+                    level.picture = move(*octaves[i-1][this->countLevelsInOctave].picture.scalePicture());
+                    level.currentSigma = octaves[i-1][this->countLevelsInOctave].currentSigma/2;
+                    octaves[i].emplace_back(move(level));
+                }
+            }
+            else {
+                auto level = Level();
+                auto prevCurrentSigma = octaves[i][j-1].currentSigma;
+                auto currentSigma = prevCurrentSigma * this->k;
+                level.currentSigma = currentSigma;
+                deltaSigma = calculationDeltaSigma(currentSigma,prevCurrentSigma);
+                auto levelPicture = octaves[i][j-1].picture.useFilter(*PictureFilter::getGaussXY(deltaSigma),BorderMode::ReflectBorderValue);
+                level.picture = move(*levelPicture);
+                octaves[i].emplace_back(move(level));
+            }
+        }
+    }
+}
+
+void GaussianPyramid::outputPyramid(){
+    for(int i = 0; i < this->countOctaves; i++) {
+        for (int j = 0; j <= this->countLevelsInOctave; j++) {
+            QString fileName =  "Picture_octave_" + QString::number(i) + "_level_" + QString::number(j);
+            this->octaves[i][j].picture.saveImage(fileName);
+        }
+    }
 }

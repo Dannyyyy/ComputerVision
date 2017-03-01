@@ -72,7 +72,8 @@ void MainWindow::on_pushButton_clicked()
         }
         lab1();
         // начало 2-ой лабораторной
-        //auto pyramid = new GaussianPyramid(*picture,5,5);
+        auto pyramid = new GaussianPyramid(*picture,5,5);
+        pyramid->outputPyramid();
     }
     else
     {
