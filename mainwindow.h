@@ -18,6 +18,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     void lab1();
+    void lab2();
     ~MainWindow();
 
 private slots:

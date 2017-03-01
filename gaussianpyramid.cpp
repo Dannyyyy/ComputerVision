@@ -5,10 +5,20 @@ static double calculationDeltaSigma(double firstSigma, double secondSigma){
     return deltaSigma;
 }
 
-GaussianPyramid::GaussianPyramid(Picture &picture,int numberOctaves, int numberLevelsInOctave){
+static int calculationCountOctaves(const int height,const int width){
+    const int minPictureSizeOnOctave = 32;
+    int minPictureSize = width;
+    if(height < width){
+        minPictureSize = height;
+    }
+    int count = (int)ceil(sqrt((floor)(minPictureSize/minPictureSizeOnOctave)));
+    return count;
+}
+
+GaussianPyramid::GaussianPyramid(Picture &picture, int numberLevelsInOctave){
     initialSigma = 0.5;
     zeroSigma = 1.6;
-    countOctaves = numberOctaves;
+    countOctaves = calculationCountOctaves(picture.getHeight(), picture.getWidth());
     countLevelsInOctave = numberLevelsInOctave;
     k = pow(2,(1./this->countLevelsInOctave));
 

@@ -18,7 +18,7 @@ class GaussianPyramid{
     double k;
     vector<vector<Level>> octaves;
 public:
-    GaussianPyramid(Picture &picture, int numberOctaves, int numberLevelsInOctave);
+    GaussianPyramid(Picture &picture, int numberLevelsInOctave);
     void outputPyramid();
 };
 

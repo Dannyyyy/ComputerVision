@@ -47,6 +47,10 @@ void MainWindow::lab1(){
     ui->graphicsViewResult->fitInView(pixmapItemResult, Qt::KeepAspectRatio);
 }
 
+void MainWindow::lab2(){
+    auto pyramid = new GaussianPyramid(*picture,5);
+    pyramid->outputPyramid();
+}
 //image load
 void MainWindow::on_pushButton_clicked()
 {
@@ -70,10 +74,7 @@ void MainWindow::on_pushButton_clicked()
                 picture->setIntensity(i,j,qRed(intensity),qGreen(intensity),qBlue(intensity));
             }
         }
-        lab1();
-        // начало 2-ой лабораторной
-        auto pyramid = new GaussianPyramid(*picture,5,5);
-        pyramid->outputPyramid();
+        lab2();
     }
     else
     {
