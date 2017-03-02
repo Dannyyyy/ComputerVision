@@ -51,6 +51,7 @@ void MainWindow::lab2(){
     auto pyramid = new GaussianPyramid(*picture,5);
     pyramid->outputPyramid();
 }
+
 //image load
 void MainWindow::on_pushButton_clicked()
 {
