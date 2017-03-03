@@ -37,20 +37,21 @@ void MainWindow::outputPyramid(const GaussianPyramid &pyramid, QString filePath)
 }
 
 void MainWindow::lab1(){
+    QString filePath = "C:\\AGTU\\pictures\\";
     // Собель
-    auto pictureSobelX = picture->useFilter(*PictureFilter::getSobelGX(),BorderMode::ReflectBorderValue);
-    pictureSobelX->saveImage("sobelX");
-    auto pictureSobelY = picture->useFilter(*PictureFilter::getSobelGY(),BorderMode::ReflectBorderValue);
-    pictureSobelY->saveImage("sobelY");
-    auto pictureSobel = Picture::calculationGradient(*pictureSobelX,*pictureSobelY);
-    pictureSobel->pictureNormalize();
-    pictureSobel->saveImage("sobel");
+    auto pictureSobelX = picture.useFilter(PictureFilter::getSobelGX(),BorderMode::ReflectBorderValue);
+    pictureSobelX.saveImage(filePath + "sobelX");
+    auto pictureSobelY = picture.useFilter(PictureFilter::getSobelGY(),BorderMode::ReflectBorderValue);
+    pictureSobelY.saveImage(filePath + "sobelY");
+    auto &pictureSobel = Picture::calculationGradient(pictureSobelX,pictureSobelY);
+    pictureSobel.pictureNormalize();
+    pictureSobel.saveImage(filePath + "sobel");
     // Гаусс
-    auto pictureGauss = picture->useFilter(*PictureFilter::getGaussX(5),BorderMode::ReflectBorderValue);
-    pictureGauss = pictureGauss->useFilter(*PictureFilter::getGaussY(5),BorderMode::ReflectBorderValue);
-    pictureGauss->saveImage("gauss");
+    auto pictureGauss = picture.useFilter(PictureFilter::getGaussX(5),BorderMode::ReflectBorderValue);
+    pictureGauss = pictureGauss.useFilter(PictureFilter::getGaussY(5),BorderMode::ReflectBorderValue);
+    pictureGauss.saveImage(filePath + "gauss");
     //
-    auto imageResult = pictureSobel->getImage();
+    auto imageResult = pictureSobel.getImage();
     QGraphicsScene *sceneResult = new QGraphicsScene(this);
     ui->graphicsViewResult->setScene(sceneResult);
     QGraphicsItem *pixmapItemResult = new QGraphicsPixmapItem(QPixmap::fromImage(imageResult));
@@ -59,7 +60,7 @@ void MainWindow::lab1(){
 }
 
 void MainWindow::lab2(){
-    auto pyramid = new GaussianPyramid(*picture,5);
+    auto pyramid = new GaussianPyramid(picture,5);
     outputPyramid(*pyramid,"C:\\AGTU\\pictures\\");
 }
 
@@ -77,15 +78,16 @@ void MainWindow::on_pushButton_clicked()
         const int height = imageInitial.height();
         const int width = imageInitial.width();
         ui->graphicsViewInitial->fitInView(pixmapItemInitial, Qt::KeepAspectRatio);
-        picture = make_unique<Picture>(height, width);
+        picture = Picture(height, width);
         for(int i=0;i<height;i++)
         {
             for(int j=0;j<width;j++)
             {
                 auto intensity = imageInitial.pixel(j,i);
-                picture->setIntensity(i,j,qRed(intensity),qGreen(intensity),qBlue(intensity));
+                picture.setIntensity(i,j,qRed(intensity),qGreen(intensity),qBlue(intensity));
             }
         }
+        lab1();
         lab2();
     }
     else

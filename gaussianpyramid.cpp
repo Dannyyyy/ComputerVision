@@ -26,10 +26,10 @@ GaussianPyramid::GaussianPyramid(const Picture &picture, int numberLevelsInOctav
 
     double deltaSigma = DeltaSigma(zeroSigma, initialSigma);
     auto filter = PictureFilter::getGaussX(deltaSigma);
-    auto initialPicture = picture.useFilter(*filter,BorderMode::ReflectBorderValue);
+    auto initialPicture = picture.useFilter(filter,BorderMode::ReflectBorderValue);
     filter = PictureFilter::getGaussY(deltaSigma);;
-    initialPicture = initialPicture->useFilter(*filter,BorderMode::ReflectBorderValue);
-    octaves[0].emplace_back(Level{*initialPicture, zeroSigma});
+    initialPicture = initialPicture.useFilter(filter,BorderMode::ReflectBorderValue);
+    octaves[0].emplace_back(Level{initialPicture, zeroSigma});
     for(int i = 0; i < countOctaves; i++) {
         auto &octave = octaves[i];
         for (int j = 0; j <= countLevelsInOctave; j++) {
@@ -37,7 +37,7 @@ GaussianPyramid::GaussianPyramid(const Picture &picture, int numberLevelsInOctav
                 if(i !=0 ) {
                     auto &baseLevel = octaves[i-1][this->countLevelsInOctave];
                     auto picture = baseLevel.picture.scalePicture();
-                    octave.emplace_back(Level{move(*picture),baseLevel.sigma/2});
+                    octave.emplace_back(Level{picture,baseLevel.sigma/2});
                 }
             }
             else {
@@ -45,10 +45,10 @@ GaussianPyramid::GaussianPyramid(const Picture &picture, int numberLevelsInOctav
                 auto sigma = prevLevel.sigma * k;
                 deltaSigma = DeltaSigma(sigma,prevLevel.sigma);
                 filter = PictureFilter::getGaussX(deltaSigma);
-                auto picture = prevLevel.picture.useFilter(*filter, BorderMode::ReflectBorderValue);
+                auto picture = prevLevel.picture.useFilter(filter, BorderMode::ReflectBorderValue);
                 filter = PictureFilter::getGaussY(deltaSigma);
-                picture = picture->useFilter(*filter, BorderMode::ReflectBorderValue);
-                octave.emplace_back(Level{move(*picture),sigma});
+                picture = picture.useFilter(filter, BorderMode::ReflectBorderValue);
+                octave.emplace_back(Level{picture,sigma});
             }
         }
     }

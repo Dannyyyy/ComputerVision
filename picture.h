@@ -24,16 +24,16 @@ public:
     double getIntensity(const int x, const int y) const;
     double getIntensity(const int x, const int y, BorderMode borderMode) const;
     QImage getImage() const;
-    unique_ptr<Picture> useFilter(const PictureFilterContent &pictureFilterContent, BorderMode borderMode) const;
+    Picture useFilter(const PictureFilterContent &pictureFilterContent, BorderMode borderMode) const;
     void saveImage(QString filePath) const;
-    static unique_ptr<Picture> calculationGradient(const Picture &sobelX, const Picture &sobelY);
+    static Picture calculationGradient(const Picture &sobelX, const Picture &sobelY);
     void pictureNormalize();
-    unique_ptr<Picture> getPictureNormalize();
+    Picture getPictureNormalize() const;
     double getOutsideBlack(const int x, const int y) const;
     double getCopyBoarderValue(const int x, const int y) const;
     double getReflectBoarderValue(const int x, const int y) const;
     double getWrapPicture(const int x, const int y) const;
-    unique_ptr<Picture> scalePicture();
+    Picture scalePicture() const;
 
     Picture(Picture &picture);
     Picture& operator=(Picture&& otherPicture);

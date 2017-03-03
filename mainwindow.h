@@ -28,7 +28,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    unique_ptr<Picture> picture;
+    Picture picture;
 };
 
 #endif // MAINWINDOW_H

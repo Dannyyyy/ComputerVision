@@ -17,53 +17,43 @@ Picture::Picture(const int height, const int width){
 }
 
 void Picture::setIntensity(const int x, const int y, const double intensity){
-    this->content[(this->height * y) + x] = intensity;
+    this->content[(height * y) + x] = intensity;
 }
 
 void Picture::setIntensity(const int x, const int y, const int redColor, const int greenColor, const int blueColor){
-    this->content[(this->height * y) + x] = (0.213*redColor + 0.715*greenColor + 0.072*blueColor)/255;
+    this->content[(height * y) + x] = (0.213*redColor + 0.715*greenColor + 0.072*blueColor)/255;
 }
 
 double Picture::getIntensity(const int x, const int y) const {
-    // все "снаружи" нулевые(черные)
-    if(y < 0 || y >= this->width || x < 0 || x >= this->height)
-    {
-        return 0;
-    }
-    return this->content[(this->height * y) + x];
+    return content[(height * y) + x];
 }
 
 double Picture::getIntensity(const int x, const int y, BorderMode borderMode) const {
     switch(borderMode){
-        case BorderMode::OutsideBlack : return this->getOutsideBlack(x,y);
-                                        break;
-        case BorderMode::CopyBorderValue: return this->getCopyBoarderValue(x,y);
-                                        break;
-        case BorderMode::ReflectBorderValue: return this->getReflectBoarderValue(x,y);
-                                        break;
-        case BorderMode::WrapPicture: return this->getWrapPicture(x,y);
-                                    break;
-        default: this->getOutsideBlack(x,y);
-                break;
+        case BorderMode::OutsideBlack : return getOutsideBlack(x,y); break;
+        case BorderMode::CopyBorderValue: return getCopyBoarderValue(x,y); break;
+        case BorderMode::ReflectBorderValue: return getReflectBoarderValue(x,y); break;
+        case BorderMode::WrapPicture: return getWrapPicture(x,y); break;
+        default: getOutsideBlack(x,y);
     }
 }
 
 QImage Picture::getImage() const{
-    const int height = this->getHeight();
-    const int width = this->getWidth();
+    const int height = getHeight();
+    const int width = getWidth();
     QImage image = QImage(width, height, QImage::Format_RGB32);
     for (int x = 0; x < height; x++) {
        for (int y = 0; y < width; y++) {
-               int intensity = (int) (this->getIntensity(x, y) * 255);
+               int intensity = (int)(getIntensity(x, y) * 255);
                image.setPixel(y, x, qRgb(intensity, intensity, intensity));
        }
     }
     return image;
 }
 
-unique_ptr<Picture> Picture::useFilter(const PictureFilterContent &pictureFilterContent, BorderMode borderMode) const{
-    const int heightPicture = this->getHeight();
-    const int widthPicture = this->getWidth();
+Picture Picture::useFilter(const PictureFilterContent &pictureFilterContent, BorderMode borderMode) const{
+    const int heightPicture = getHeight();
+    const int widthPicture = getWidth();
 
     const int widthFilter = pictureFilterContent.getWidth();
     const int heightFilter = pictureFilterContent.getHeight();
@@ -71,17 +61,18 @@ unique_ptr<Picture> Picture::useFilter(const PictureFilterContent &pictureFilter
     const int centerWidthFilter = widthFilter / 2;
     const int centerHeightFilter = heightFilter / 2;
 
-    auto resultPicture = make_unique<Picture>(heightPicture, widthPicture);
+    auto resultPicture = Picture(heightPicture, widthPicture);
         for (int x = 0; x < heightPicture; x++) {
             for (int y = 0; y < widthPicture; y++) {
                 double resultIntensity = 0;
                 for (int dX = 0; dX < widthFilter; dX++) {
                     for (int dY = 0; dY < heightFilter; dY++) {
-                        resultIntensity += this->getIntensity(x - dX + centerWidthFilter, y - dY + centerHeightFilter, borderMode)
-                                  * pictureFilterContent.getContentCell(dX,dY);
+                        auto X = x - dX + centerWidthFilter;
+                        auto Y = y - dY + centerHeightFilter;
+                        resultIntensity += getIntensity(X, Y, borderMode) * pictureFilterContent.getContentCell(dX,dY);
                     }
                 }
-                resultPicture->setIntensity(x, y, resultIntensity);
+                resultPicture.setIntensity(x, y, resultIntensity);
             }
         }
         return resultPicture;
@@ -92,10 +83,10 @@ void Picture::saveImage(QString filePath) const{
     image.save(filePath + ".jpg", "jpg");
 }
 
-unique_ptr<Picture> Picture::calculationGradient(const Picture &sobelX, const Picture &sobelY){
+Picture Picture::calculationGradient(const Picture &sobelX, const Picture &sobelY){
     const int height = sobelX.getHeight();
     const int width = sobelX.getWidth();
-    auto resultPicture = make_unique<Picture>(height,width);
+    auto resultPicture = Picture(height,width);
     for(int x = 0;x<height;x++)
     {
         for(int y=0;y<width;y++)
@@ -103,24 +94,24 @@ unique_ptr<Picture> Picture::calculationGradient(const Picture &sobelX, const Pi
             double sobelXIntensity = sobelX.getIntensity(x,y);
             double sobelYIntensity = sobelY.getIntensity(x,y);
             double resultIntensity = sqrt(pow(sobelXIntensity,2)+pow(sobelYIntensity,2));
-            resultPicture->setIntensity(x, y, resultIntensity);
+            resultPicture.setIntensity(x, y, resultIntensity);
         }
     }
     return resultPicture;
 }
 
 void Picture::pictureNormalize(){
-    const int height = this->getHeight();
-    const int width = this->getWidth();
-    auto minIntensity = min_element(&this->content[0], &this->content[height*width]);
-    auto maxIntensity = max_element(&this->content[0], &this->content[height*width]);
+    const int height = getHeight();
+    const int width = getWidth();
+    auto minIntensity = min_element(&content[0], &content[height*width]);
+    auto maxIntensity = max_element(&content[0], &content[height*width]);
     double normalizeValue = *maxIntensity - *minIntensity;
     if(normalizeValue != 0.) {
         for(int x = 0;x<height;x++)
         {
             for(int y=0;y<width;y++)
             {
-                double intensity = this->getIntensity(x,y);
+                double intensity = getIntensity(x,y);
                 double normalizeIntensity = (intensity - *minIntensity)/normalizeValue;
                 this->setIntensity(x, y, normalizeIntensity);
             }
@@ -128,21 +119,21 @@ void Picture::pictureNormalize(){
     }
 }
 
-unique_ptr<Picture> Picture::getPictureNormalize(){
-    const int height = this->getHeight();
-    const int width = this->getWidth();
-    auto minIntensity = min_element(&this->content[0], &this->content[height*width]);
-    auto maxIntensity = max_element(&this->content[0], &this->content[height*width]);
+Picture Picture::getPictureNormalize() const{
+    const int height = getHeight();
+    const int width = getWidth();
+    auto minIntensity = min_element(&content[0], &content[height*width]);
+    auto maxIntensity = max_element(&content[0], &content[height*width]);
     double normalizeValue = *maxIntensity - *minIntensity;
-    auto resultPicture = make_unique<Picture>(height,width);
+    auto resultPicture = Picture(height,width);
     if(normalizeValue != 0.) {
         for(int x = 0;x<height;x++)
         {
             for(int y=0;y<width;y++)
             {
-                double intensity = this->getIntensity(x,y);
+                double intensity = getIntensity(x,y);
                 double normalizeIntensity = (intensity - *minIntensity)/normalizeValue;
-                resultPicture->setIntensity(x, y, normalizeIntensity);
+                resultPicture.setIntensity(x, y, normalizeIntensity);
             }
         }
 
@@ -153,8 +144,8 @@ unique_ptr<Picture> Picture::getPictureNormalize(){
         {
             for(int y=0;y<width;y++)
             {
-                double intensity = this->getIntensity(x,y);
-                resultPicture->setIntensity(x, y, intensity);
+                double intensity = getIntensity(x,y);
+                resultPicture.setIntensity(x, y, intensity);
             }
         }
     }
@@ -162,28 +153,28 @@ unique_ptr<Picture> Picture::getPictureNormalize(){
 }
 
 double Picture::getOutsideBlack(const int x, const int y) const {
-    if(y < 0 || y >= this->width || x < 0 || x >= this->height)
+    if(y < 0 || y >= width || x < 0 || x >= height)
     {
         return 0;
     }
     else
     {
-        return this->getIntensity(x,y);
+        return getIntensity(x,y);
     }
 }
 
 double Picture::getCopyBoarderValue(const int x, const int y) const {
     const int maxY = max(0, y);
-    const int resultY = min(maxY,this->getWidth()-1);
+    const int resultY = min(maxY,getWidth()-1);
     const int maxX = max(0, x);
-    const int resultX = min(maxX,this->getHeight()-1);
-    return this->getIntensity(resultX, resultY);
+    const int resultX = min(maxX,getHeight()-1);
+    return getIntensity(resultX, resultY);
 }
 
 double Picture::getReflectBoarderValue(const int x, const int y) const {
     int resultX = 0;
     int resultY = 0;
-    int const width = this->getWidth();
+    int const width = getWidth();
     if(y>=width)
     {
         resultY = 2*(width - 1) - y;
@@ -192,7 +183,7 @@ double Picture::getReflectBoarderValue(const int x, const int y) const {
     {
         resultY = abs(y);
     }
-    int const height = this->getHeight();
+    int const height = getHeight();
     if(x>=height)
     {
         resultX = 2*(height - 1) - x;
@@ -201,13 +192,13 @@ double Picture::getReflectBoarderValue(const int x, const int y) const {
     {
         resultX = abs(x);
     }
-    return this->getIntensity(resultX, resultY);
+    return getIntensity(resultX, resultY);
 }
 
 double Picture::getWrapPicture(const int x, const int y) const {
     int resultX = 0;
     int resultY = 0;
-    int const width = this->getWidth();
+    int const width = getWidth();
     if(y>=width || y<0)
     {
         if(y>=width)
@@ -240,21 +231,21 @@ double Picture::getWrapPicture(const int x, const int y) const {
     {
         resultX = x;
     }
-    return this->getIntensity(resultX, resultY);
+    return getIntensity(resultX, resultY);
 }
 
-unique_ptr<Picture> Picture::scalePicture(){
-    const int halfHeight = this->getHeight()/2;
-    const int halfWidth = this->getWidth()/2;
+Picture Picture::scalePicture() const{
+    const int halfHeight = getHeight()/2;
+    const int halfWidth = getWidth()/2;
 
-    auto resultPicture = make_unique<Picture>(halfHeight, halfWidth);
+    auto resultPicture = Picture(halfHeight, halfWidth);
     for(int x=0;x<halfHeight;x++){
         for(int y=0;y<halfWidth;y++){
-            double scaleIntensity = (this->getIntensity(x*2,y*2,BorderMode::ReflectBorderValue)+
-                                    this->getIntensity(x*2,y*2+1,BorderMode::ReflectBorderValue)+
-                                    this->getIntensity(x*2+1,y*2,BorderMode::ReflectBorderValue)+
-                                    this->getIntensity(x*2+1,y*2+1,BorderMode::ReflectBorderValue))/4.;
-            resultPicture->setIntensity(x,y,scaleIntensity);
+            double scaleIntensity = (getIntensity(x*2,y*2,BorderMode::ReflectBorderValue)+
+                                        getIntensity(x*2,y*2+1,BorderMode::ReflectBorderValue)+
+                                        getIntensity(x*2+1,y*2,BorderMode::ReflectBorderValue)+
+                                        getIntensity(x*2+1,y*2+1,BorderMode::ReflectBorderValue))/4.;
+            resultPicture.setIntensity(x,y,scaleIntensity);
         }
     }
     return resultPicture;
@@ -263,7 +254,7 @@ unique_ptr<Picture> Picture::scalePicture(){
 Picture::Picture(Picture &picture){
     this->height = picture.getHeight();
     this->width = picture.getWidth();
-    content = make_unique<double []>((size_t) (width * height));
+    content = make_unique<double []>((width * height));
     for (int i = 0; i < width * height; ++i)
         content[i] = picture.content[i];
 }
