@@ -23,9 +23,9 @@ public:
     void setIntensity(const int x, const int y, const double intensity);
     double getIntensity(const int x, const int y) const;
     double getIntensity(const int x, const int y, BorderMode borderMode) const;
-    QImage getImage();
-    unique_ptr<Picture> useFilter(const PictureFilterContent &pictureFilterContent, BorderMode borderMode);
-    void saveImage(QString fileName);
+    QImage getImage() const;
+    unique_ptr<Picture> useFilter(const PictureFilterContent &pictureFilterContent, BorderMode borderMode) const;
+    void saveImage(QString filePath) const;
     static unique_ptr<Picture> calculationGradient(const Picture &sobelX, const Picture &sobelY);
     void pictureNormalize();
     unique_ptr<Picture> getPictureNormalize();

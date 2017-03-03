@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <picture.h>
+#include <gaussianpyramid.h>
 #include <memory>
 
 using namespace std;
@@ -19,6 +20,7 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     void lab1();
     void lab2();
+    void outputPyramid(const GaussianPyramid &pyramid, QString filePath) const;
     ~MainWindow();
 
 private slots:

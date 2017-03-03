@@ -25,6 +25,17 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::outputPyramid(const GaussianPyramid &pyramid, QString filePath) const{
+    int countOctaves = pyramid.getCountOctaves();
+    int countLevelsInOctave = pyramid.getCountLevelsInOctave();
+    for(int i = 0; i < countOctaves; i++) {
+        for (int j = 0; j <= countLevelsInOctave; j++) {
+            QString fileName =  filePath + QString("octave_%1_level_%2").arg(QString::number(i),QString::number(j));
+            pyramid.savePicture(i,j,fileName);
+        }
+    }
+}
+
 void MainWindow::lab1(){
     // Собель
     auto pictureSobelX = picture->useFilter(*PictureFilter::getSobelGX(),BorderMode::ReflectBorderValue);
@@ -49,7 +60,7 @@ void MainWindow::lab1(){
 
 void MainWindow::lab2(){
     auto pyramid = new GaussianPyramid(*picture,5);
-    pyramid->outputPyramid();
+    outputPyramid(*pyramid,"C:\\AGTU\\pictures\\");
 }
 
 //image load

@@ -48,7 +48,7 @@ double Picture::getIntensity(const int x, const int y, BorderMode borderMode) co
     }
 }
 
-QImage Picture::getImage(){
+QImage Picture::getImage() const{
     const int height = this->getHeight();
     const int width = this->getWidth();
     QImage image = QImage(width, height, QImage::Format_RGB32);
@@ -61,7 +61,7 @@ QImage Picture::getImage(){
     return image;
 }
 
-unique_ptr<Picture> Picture::useFilter(const PictureFilterContent &pictureFilterContent, BorderMode borderMode){
+unique_ptr<Picture> Picture::useFilter(const PictureFilterContent &pictureFilterContent, BorderMode borderMode) const{
     const int heightPicture = this->getHeight();
     const int widthPicture = this->getWidth();
 
@@ -87,9 +87,9 @@ unique_ptr<Picture> Picture::useFilter(const PictureFilterContent &pictureFilter
         return resultPicture;
 }
 
-void Picture::saveImage(QString fileName){
-    QImage image = this->getImage();
-    image.save("C:\\AGTU\\pictures\\" + fileName + ".jpg", "jpg");
+void Picture::saveImage(QString filePath) const{
+    QImage image = getImage();
+    image.save(filePath + ".jpg", "jpg");
 }
 
 unique_ptr<Picture> Picture::calculationGradient(const Picture &sobelX, const Picture &sobelY){

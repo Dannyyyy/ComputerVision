@@ -11,15 +11,17 @@ struct Level{
 };
 
 class GaussianPyramid{
+    const double initialSigma = 0.5;
+    const double zeroSigma = 1.6;
     int countOctaves;
     int countLevelsInOctave;
-    double initialSigma;
-    double zeroSigma;
     double k;
     vector<vector<Level>> octaves;
 public:
-    GaussianPyramid(Picture &picture, int numberLevelsInOctave);
-    void outputPyramid();
+    int getCountOctaves() const;
+    int getCountLevelsInOctave() const;
+    void savePicture(int octave, int level, QString filePath) const;
+    GaussianPyramid(const Picture &picture, int numberLevelsInOctave);
 };
 
 #endif // GAUSSIANPYRAMID_H
