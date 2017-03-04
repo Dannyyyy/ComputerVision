@@ -16,6 +16,21 @@ Picture::Picture(const int height, const int width){
     this->content = make_unique<double []>(height * width);
 }
 
+Picture::Picture(Picture &picture){
+    this->height = picture.getHeight();
+    this->width = picture.getWidth();
+    content = make_unique<double []>((width * height));
+    for (int i = 0; i < width * height; ++i)
+        content[i] = picture.content[i];
+}
+
+Picture &Picture::operator=(Picture &&otherPicture) {
+    this->width = otherPicture.getWidth();
+    this->height = otherPicture.getHeight();
+    this->content = move(otherPicture.content);
+    return *this;
+}
+
 void Picture::setIntensity(const int x, const int y, const double intensity){
     this->content[(height * y) + x] = intensity;
 }
@@ -51,7 +66,29 @@ QImage Picture::getImage() const{
     return image;
 }
 
-Picture Picture::useFilter(const PictureFilterContent &pictureFilterContent, BorderMode borderMode) const{
+void Picture::saveImage(QString filePath) const{
+    QImage image = getImage();
+    image.save(filePath + ".jpg", "jpg");
+}
+
+Picture Picture::scalePicture() const{
+    const int halfHeight = getHeight()/2;
+    const int halfWidth = getWidth()/2;
+
+    auto resultPicture = Picture(halfHeight, halfWidth);
+    for(int x=0;x<halfHeight;x++){
+        for(int y=0;y<halfWidth;y++){
+            double scaleIntensity = (getIntensity(x*2,y*2,BorderMode::ReflectBorderValue)+
+                                        getIntensity(x*2,y*2+1,BorderMode::ReflectBorderValue)+
+                                        getIntensity(x*2+1,y*2,BorderMode::ReflectBorderValue)+
+                                        getIntensity(x*2+1,y*2+1,BorderMode::ReflectBorderValue))/4.;
+            resultPicture.setIntensity(x,y,scaleIntensity);
+        }
+    }
+    return resultPicture;
+}
+
+Picture Picture::useFilter(const PictureFilterContent &pictureFilterContent, BorderMode border) const{
     const int heightPicture = getHeight();
     const int widthPicture = getWidth();
 
@@ -69,7 +106,7 @@ Picture Picture::useFilter(const PictureFilterContent &pictureFilterContent, Bor
                     for (int dY = 0; dY < heightFilter; dY++) {
                         auto X = x - dX + centerWidthFilter;
                         auto Y = y - dY + centerHeightFilter;
-                        resultIntensity += getIntensity(X, Y, borderMode) * pictureFilterContent.getContentCell(dX,dY);
+                        resultIntensity += getIntensity(X, Y, border) * pictureFilterContent.getContentCell(dX,dY);
                     }
                 }
                 resultPicture.setIntensity(x, y, resultIntensity);
@@ -78,10 +115,12 @@ Picture Picture::useFilter(const PictureFilterContent &pictureFilterContent, Bor
         return resultPicture;
 }
 
-void Picture::saveImage(QString filePath) const{
-    QImage image = getImage();
-    image.save(filePath + ".jpg", "jpg");
+Picture Picture::useTwoFilter(const PictureFilterContent &fFilter, const PictureFilterContent &sFilter, BorderMode border) const{
+    auto resultPicture = useFilter(fFilter, border);
+    resultPicture = resultPicture.useFilter(sFilter, border);
+    return resultPicture;
 }
+
 
 Picture Picture::calculationGradient(const Picture &sobelX, const Picture &sobelY){
     const int height = sobelX.getHeight();
@@ -234,36 +273,5 @@ double Picture::getWrapPicture(const int x, const int y) const {
     return getIntensity(resultX, resultY);
 }
 
-Picture Picture::scalePicture() const{
-    const int halfHeight = getHeight()/2;
-    const int halfWidth = getWidth()/2;
-
-    auto resultPicture = Picture(halfHeight, halfWidth);
-    for(int x=0;x<halfHeight;x++){
-        for(int y=0;y<halfWidth;y++){
-            double scaleIntensity = (getIntensity(x*2,y*2,BorderMode::ReflectBorderValue)+
-                                        getIntensity(x*2,y*2+1,BorderMode::ReflectBorderValue)+
-                                        getIntensity(x*2+1,y*2,BorderMode::ReflectBorderValue)+
-                                        getIntensity(x*2+1,y*2+1,BorderMode::ReflectBorderValue))/4.;
-            resultPicture.setIntensity(x,y,scaleIntensity);
-        }
-    }
-    return resultPicture;
-}
-
-Picture::Picture(Picture &picture){
-    this->height = picture.getHeight();
-    this->width = picture.getWidth();
-    content = make_unique<double []>((width * height));
-    for (int i = 0; i < width * height; ++i)
-        content[i] = picture.content[i];
-}
-
-Picture &Picture::operator=(Picture &&otherPicture) {
-    this->width = otherPicture.getWidth();
-    this->height = otherPicture.getHeight();
-    this->content = move(otherPicture.content);
-    return *this;
-}
 
 

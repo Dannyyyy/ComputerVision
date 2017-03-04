@@ -47,8 +47,7 @@ void MainWindow::lab1(){
     pictureSobel.pictureNormalize();
     pictureSobel.saveImage(filePath + "sobel");
     // Гаусс
-    auto pictureGauss = picture.useFilter(PictureFilter::getGaussX(5),BorderMode::ReflectBorderValue);
-    pictureGauss = pictureGauss.useFilter(PictureFilter::getGaussY(5),BorderMode::ReflectBorderValue);
+    auto pictureGauss = picture.useTwoFilter(PictureFilter::getGaussX(5),PictureFilter::getGaussY(5),BorderMode::ReflectBorderValue);
     pictureGauss.saveImage(filePath + "gauss");
     //
     auto imageResult = pictureSobel.getImage();
