@@ -33,6 +33,7 @@ HEADERS  += mainwindow.h \
     picture.h \
     picturefilter.h \
     border.h \
-    gaussianpyramid.h
+    gaussianpyramid.h \
+    pointsearch.h
 
 FORMS    += mainwindow.ui
