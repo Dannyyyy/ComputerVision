@@ -90,6 +90,8 @@ void MainWindow::on_pushButton_clicked()
         //lab1();
         //lab2();
         auto interestPoints = new PointSearch(picture);
+        interestPoints->harris();
+        interestPoints->moravek();
     }
     else
     {

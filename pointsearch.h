@@ -18,6 +18,7 @@ public:
     PointSearch(const Picture &picture): picture(picture){}
     void moravek() const;
     void harris() const;
+    void searchInterestPoints(const Picture &resultPicture);
 };
 
 #endif // POINTSEARCH_H
