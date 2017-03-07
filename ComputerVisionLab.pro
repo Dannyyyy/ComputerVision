@@ -27,7 +27,8 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     picture.cpp \
     picturefilter.cpp \
-    gaussianpyramid.cpp
+    gaussianpyramid.cpp \
+    pointsearch.cpp
 
 HEADERS  += mainwindow.h \
     picture.h \
