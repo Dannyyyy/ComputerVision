@@ -4,31 +4,16 @@
 #include <picturefilter.h>
 #include <math.h>
 
-Picture::Picture(){
-    this->width = 0;
-    this->height = 0;
-    this->content = nullptr;
+Picture::Picture(): width(0),height(0),content(nullptr) {}
+
+Picture::Picture(const int height, const int width): width(width), height(height){
+    content = make_unique<double []>(height * width);
 }
 
-Picture::Picture(const int height, const int width){
-    this->width = width;
-    this->height = height;
-    this->content = make_unique<double []>(height * width);
-}
-
-Picture::Picture(Picture &picture){
-    this->height = picture.getHeight();
-    this->width = picture.getWidth();
+Picture::Picture(const Picture &picture): width(picture.getWidth()), height(picture.getHeight()){
     content = make_unique<double []>((width * height));
     for (int i = 0; i < width * height; ++i)
         content[i] = picture.content[i];
-}
-
-Picture &Picture::operator=(Picture &&otherPicture) {
-    this->width = otherPicture.getWidth();
-    this->height = otherPicture.getHeight();
-    this->content = move(otherPicture.content);
-    return *this;
 }
 
 void Picture::setIntensity(const int x, const int y, const double intensity){

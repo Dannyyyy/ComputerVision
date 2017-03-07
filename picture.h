@@ -17,8 +17,9 @@ private:
 public:
     Picture();
     Picture(const int height, const int width);
-    Picture(Picture &picture);
-    Picture& operator=(Picture&& otherPicture);
+    Picture(const Picture &picture);
+    Picture(Picture &&picture) = default;
+    Picture& operator=(Picture&& otherPicture) = default;
 
     int getHeight() const { return this->height; }
     int getWidth() const { return this->width; }

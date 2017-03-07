@@ -12,6 +12,7 @@
 #include <picturefilter.h>
 #include <border.h>
 #include <gaussianpyramid.h>
+#include <pointsearch.h>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -86,8 +87,9 @@ void MainWindow::on_pushButton_clicked()
                 picture.setIntensity(i,j,qRed(intensity),qGreen(intensity),qBlue(intensity));
             }
         }
-        lab1();
-        lab2();
+        //lab1();
+        //lab2();
+        auto interestPoints = new PointSearch(picture);
     }
     else
     {

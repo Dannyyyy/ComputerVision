@@ -28,7 +28,7 @@ GaussianPyramid::GaussianPyramid(const Picture &picture, int numberLevelsInOctav
     auto filterX = PictureFilter::getGaussX(deltaSigma);
     auto filterY = PictureFilter::getGaussY(deltaSigma);
     auto initialPicture = picture.useTwoFilter(filterX,filterY,BorderMode::ReflectBorderValue);
-    octaves[0].emplace_back(Level{initialPicture, zeroSigma});
+    octaves[0].emplace_back(Level{move(initialPicture), zeroSigma});
     for(int i = 0; i < countOctaves; i++) {
         auto &octave = octaves[i];
         for (int j = 0; j <= countLevelsInOctave; j++) {
@@ -36,7 +36,7 @@ GaussianPyramid::GaussianPyramid(const Picture &picture, int numberLevelsInOctav
                 if(i !=0 ) {
                     auto &baseLevel = octaves[i-1][countLevelsInOctave];
                     auto picture = baseLevel.picture.scalePicture();
-                    octave.emplace_back(Level{picture,baseLevel.sigma/2});
+                    octave.emplace_back(Level{move(picture),baseLevel.sigma/2});
                 }
             }
             else {
@@ -46,7 +46,7 @@ GaussianPyramid::GaussianPyramid(const Picture &picture, int numberLevelsInOctav
                 filterX = PictureFilter::getGaussX(deltaSigma);
                 filterY = PictureFilter::getGaussY(deltaSigma);
                 auto picture = prevLevel.picture.useTwoFilter(filterX,filterY, BorderMode::ReflectBorderValue);
-                octave.emplace_back(Level{picture,sigma});
+                octave.emplace_back(Level{move(picture),sigma});
             }
         }
     }
