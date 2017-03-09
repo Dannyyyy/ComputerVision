@@ -89,9 +89,12 @@ void MainWindow::on_pushButton_clicked()
         }
         //lab1();
         //lab2();
-        auto interestPoints = new PointSearch(picture);
-        interestPoints->harris();
-        interestPoints->moravek();
+        auto interestPointsHarris = new PointSearch(picture);
+        interestPointsHarris->harris();
+        //interestPointsHarris->drawAndSaveInterestPoints("C:\\AGTU\\pictures\\haris.jpg");
+        auto interestPointsMoravek = new PointSearch(picture);
+        interestPointsMoravek->moravek();
+        interestPointsMoravek->drawAndSaveInterestPoints("C:\\AGTU\\pictures\\moravek.jpg");
     }
     else
     {

@@ -8,6 +8,7 @@ using namespace std;
 
 struct InterestPoint{
     int x,y;
+    double intensity;
 };
 
 class PointSearch{
@@ -16,9 +17,11 @@ private:
     vector<InterestPoint> points;
 public:
     PointSearch(const Picture &picture): picture(picture){}
-    void moravek() const;
-    void harris() const;
-    void searchInterestPoints(const Picture &resultPicture);
+    void moravek();
+    void harris();
+    void searchInterestPoints(Picture &resultPicture);
+    void adaptiveNonMaxSuppression(const int needfulCountPoints);
+    void drawAndSaveInterestPoints(const QString filePath) const;
 };
 
 #endif // POINTSEARCH_H

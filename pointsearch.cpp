@@ -1,6 +1,8 @@
 #include <pointsearch.h>
+#include <iostream>
 
-void PointSearch::harris() const{
+
+void PointSearch::harris(){
     const int heightPicture = picture.getHeight();
     const int widthPicture = picture.getWidth();
     auto resultPicture = Picture(heightPicture, widthPicture);
@@ -36,9 +38,10 @@ void PointSearch::harris() const{
              resultPicture.setIntensity(x,y,f);
         }
      }
+    searchInterestPoints(resultPicture);
 }
 
-void PointSearch::moravek() const{
+void PointSearch::moravek(){
     const int heightPicture = picture.getHeight();
     const int widthPicture = picture.getWidth();
     auto resultPicture = Picture(heightPicture, widthPicture);
@@ -68,13 +71,14 @@ void PointSearch::moravek() const{
             resultPicture.setIntensity(x,y,minError);
         }
     }
+    searchInterestPoints(resultPicture);
 }
 
-void PointSearch::searchInterestPoints(const Picture &resultPicture){
+void PointSearch::searchInterestPoints(Picture &resultPicture){
     const int heightPicture = picture.getHeight();
     const int widthPicture = picture.getWidth();
     const double window = 2;
-    const double treshold = 4;
+    const double treshold = 0.01;
     points.clear();
     BorderMode border = BorderMode::ReflectBorderValue;
     for (int x = 0; x < heightPicture; x++) {
@@ -91,9 +95,44 @@ void PointSearch::searchInterestPoints(const Picture &resultPicture){
                     }
                 }
                 if(isLocalMaximum) {
-                    points.emplace_back(InterestPoint{x,y});
+                    points.emplace_back(InterestPoint{x,y,intensity});
                 }
             }
         }
     }
+    cout<<points.size()<<endl;
+}
+
+static double Dist(const int x1, const int x2,const int y1, const int y2){
+    double dist = sqrt(pow((x2-x1),2) + pow((y2-y1),2));
+    return dist;
+}
+
+void PointSearch::adaptiveNonMaxSuppression(const int needfulCountPoints){
+    const int height = picture.getHeight();
+    const int width = picture.getWidth();
+    int radius = 0;
+    const int maxRadius = Dist(0,height, 0,width);
+    const double coef = 0.9;
+    double distance, intensityI, intensityJ;
+    while(points.size()>needfulCountPoints && radius<=maxRadius){
+        for (int i = 0; i < points.size(); i++) {
+            for (int j = i+1; j < points.size(); j++) {
+                distance = Dist(points[i].x,points[j].x,points[i].y,points[j].y);
+                intensityI = coef * points[i].intensity;
+                intensityJ = points[j].intensity;
+                if(distance <= radius && intensityI < intensityJ){
+                    points.erase(points.begin()+i);
+                }
+            }
+         }
+    }
+}
+
+void PointSearch::drawAndSaveInterestPoints(const QString filePath) const{
+    auto resultImage = picture.getImage();
+    for(auto &point : points) {
+        resultImage.setPixel(point.y, point.x ,qRgb(0,255,0));
+    }
+    resultImage.save(filePath,"jpg");
 }
