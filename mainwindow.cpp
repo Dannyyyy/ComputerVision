@@ -87,14 +87,16 @@ void MainWindow::on_pushButton_clicked()
                 picture.setIntensity(i,j,qRed(intensity),qGreen(intensity),qBlue(intensity));
             }
         }
-        //lab1();
-        //lab2();
-        auto interestPointsHarris = new PointSearch(picture);
-        interestPointsHarris->harris();
-        //interestPointsHarris->drawAndSaveInterestPoints("C:\\AGTU\\pictures\\haris.jpg");
+        //lab 3
         auto interestPointsMoravek = new PointSearch(picture);
-        interestPointsMoravek->moravek();
+        interestPointsMoravek->moravek(BorderMode::ReflectBorderValue, 0.01);
+        interestPointsMoravek->adaptiveNonMaxSuppression(300);
         interestPointsMoravek->drawAndSaveInterestPoints("C:\\AGTU\\pictures\\moravek.jpg");
+
+        auto interestPointsHarris = new PointSearch(picture);
+        interestPointsHarris->harris(BorderMode::ReflectBorderValue, 0.01);
+        interestPointsHarris->adaptiveNonMaxSuppression(300);
+        interestPointsHarris->drawAndSaveInterestPoints("C:\\AGTU\\pictures\\harris.jpg");
     }
     else
     {

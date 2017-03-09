@@ -17,9 +17,9 @@ private:
     vector<InterestPoint> points;
 public:
     PointSearch(const Picture &picture): picture(picture){}
-    void moravek();
-    void harris();
-    void searchInterestPoints(Picture &resultPicture);
+    void moravek(BorderMode border, double treshold);
+    void harris(BorderMode border, double treshold);
+    void searchInterestPoints(Picture &resultPicture, BorderMode border, double treshold);
     void adaptiveNonMaxSuppression(const int needfulCountPoints);
     void drawAndSaveInterestPoints(const QString filePath) const;
 };

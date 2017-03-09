@@ -2,7 +2,7 @@
 #include <iostream>
 
 
-void PointSearch::harris(){
+void PointSearch::harris(BorderMode border, double treshold){
     const int heightPicture = picture.getHeight();
     const int widthPicture = picture.getWidth();
     auto resultPicture = Picture(heightPicture, widthPicture);
@@ -11,7 +11,6 @@ void PointSearch::harris(){
     auto gauss = PictureFilter::getGaussXY(sigma);
     const int centerGauss = gauss.getHeight()/2;
 
-    BorderMode border = BorderMode::ReflectBorderValue;
     auto filterSobelX = PictureFilter::getSobelGX();
     auto sobelX = picture.useFilter(filterSobelX,border);
     auto filterSobelY = PictureFilter::getSobelGY();
@@ -22,13 +21,13 @@ void PointSearch::harris(){
     for (int x = 0; x < heightPicture; x++) {
         for (int y = 0; y < widthPicture; y++) {
              A=B=C=0;
-             for(int u=-centerGauss;u<centerGauss;u++)
+             for(int u=-centerGauss;u<=centerGauss;u++)
              {
-                 for(int v=-centerGauss;v<centerGauss;v++)
+                 for(int v=-centerGauss;v<=centerGauss;v++)
                  {
-                     auto gaussW = gauss.getContentCell(u,v);
-                     auto Ix = sobelX.getIntensity(x,y,border);
-                     auto Iy = sobelY.getIntensity(x,y,border);
+                     auto gaussW = gauss.getContentCell(u+centerGauss,v+centerGauss);
+                     auto Ix = sobelX.getIntensity(x+u,y+v,border);
+                     auto Iy = sobelY.getIntensity(x+u,y+v,border);
                      A += gaussW * pow(Ix,2);
                      B += gaussW * Ix * Iy;
                      C += gaussW * pow(Iy,2);
@@ -38,16 +37,15 @@ void PointSearch::harris(){
              resultPicture.setIntensity(x,y,f);
         }
      }
-    searchInterestPoints(resultPicture);
+    searchInterestPoints(resultPicture, border, treshold);
 }
 
-void PointSearch::moravek(){
+void PointSearch::moravek(BorderMode border, double treshold){
     const int heightPicture = picture.getHeight();
     const int widthPicture = picture.getWidth();
     auto resultPicture = Picture(heightPicture, widthPicture);
     vector<double> errors;
     double window = 2;
-    BorderMode border = BorderMode::ReflectBorderValue;
     for (int x = 0; x < heightPicture; x++) {
         for (int y = 0; y < widthPicture; y++) {
             errors.clear();
@@ -71,16 +69,14 @@ void PointSearch::moravek(){
             resultPicture.setIntensity(x,y,minError);
         }
     }
-    searchInterestPoints(resultPicture);
+    searchInterestPoints(resultPicture, border, treshold);
 }
 
-void PointSearch::searchInterestPoints(Picture &resultPicture){
+void PointSearch::searchInterestPoints(Picture &resultPicture, BorderMode border, double treshold){
     const int heightPicture = picture.getHeight();
     const int widthPicture = picture.getWidth();
     const double window = 2;
-    const double treshold = 0.01;
     points.clear();
-    BorderMode border = BorderMode::ReflectBorderValue;
     for (int x = 0; x < heightPicture; x++) {
         for (int y = 0; y < widthPicture; y++) {
             auto intensity = resultPicture.getIntensity(x,y,border);
@@ -100,7 +96,7 @@ void PointSearch::searchInterestPoints(Picture &resultPicture){
             }
         }
     }
-    cout<<points.size()<<endl;
+    cout<<"Initial: "<<points.size()<<endl;
 }
 
 static double Dist(const int x1, const int x2,const int y1, const int y2){
@@ -115,24 +111,27 @@ void PointSearch::adaptiveNonMaxSuppression(const int needfulCountPoints){
     const int maxRadius = Dist(0,height, 0,width);
     const double coef = 0.9;
     double distance, intensityI, intensityJ;
+
     while(points.size()>needfulCountPoints && radius<=maxRadius){
         for (int i = 0; i < points.size(); i++) {
+            intensityI = coef * points[i].intensity;
             for (int j = i+1; j < points.size(); j++) {
                 distance = Dist(points[i].x,points[j].x,points[i].y,points[j].y);
-                intensityI = coef * points[i].intensity;
                 intensityJ = points[j].intensity;
                 if(distance <= radius && intensityI < intensityJ){
-                    points.erase(points.begin()+i);
+                    points.erase(points.begin()+i); break;
                 }
             }
          }
+        radius++;
     }
+    cout<<"Addaptive: "<<points.size()<<endl;
 }
 
 void PointSearch::drawAndSaveInterestPoints(const QString filePath) const{
     auto resultImage = picture.getImage();
-    for(auto &point : points) {
-        resultImage.setPixel(point.y, point.x ,qRgb(0,255,0));
+    for(auto point : points) {
+        resultImage.setPixel(point.y, point.x ,qRgb(255,0,0));
     }
     resultImage.save(filePath,"jpg");
 }
