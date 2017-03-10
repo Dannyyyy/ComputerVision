@@ -1,5 +1,6 @@
 #include <pointsearch.h>
 #include <iostream>
+#include <QPainter>
 
 
 void PointSearch::harris(BorderMode border, double treshold){
@@ -82,11 +83,11 @@ void PointSearch::searchInterestPoints(Picture &resultPicture, BorderMode border
             auto intensity = resultPicture.getIntensity(x,y,border);
             if (intensity > treshold) {
                 bool isLocalMaximum = true;
-                for (int u = -window; u <= window; u++) {
+                for (int u = -window; u <= window && isLocalMaximum == true; u++) {
                     for (int v = -window; v <= window; v++) {
                         if (u != 0 && v != 0) {
                             auto shiftIntensity = resultPicture.getIntensity(x+u,y+v,border);
-                            if (shiftIntensity >= intensity) isLocalMaximum = false;
+                            if (shiftIntensity >= intensity){ isLocalMaximum = false; break;}
                         }
                     }
                 }
@@ -100,8 +101,7 @@ void PointSearch::searchInterestPoints(Picture &resultPicture, BorderMode border
 }
 
 static double Dist(const int x1, const int x2,const int y1, const int y2){
-    double dist = sqrt(pow((x2-x1),2) + pow((y2-y1),2));
-    return dist;
+    return hypot(x2-x1,y2-y1);
 }
 
 void PointSearch::adaptiveNonMaxSuppression(const int needfulCountPoints){
@@ -114,10 +114,10 @@ void PointSearch::adaptiveNonMaxSuppression(const int needfulCountPoints){
 
     while(points.size()>needfulCountPoints && radius<=maxRadius){
         for (int i = 0; i < points.size(); i++) {
-            intensityI = coef * points[i].intensity;
+            intensityI = points[i].intensity;
             for (int j = i+1; j < points.size(); j++) {
                 distance = Dist(points[i].x,points[j].x,points[i].y,points[j].y);
-                intensityJ = points[j].intensity;
+                intensityJ = coef * points[j].intensity;
                 if(distance <= radius && intensityI < intensityJ){
                     points.erase(points.begin()+i); break;
                 }
@@ -130,8 +130,10 @@ void PointSearch::adaptiveNonMaxSuppression(const int needfulCountPoints){
 
 void PointSearch::drawAndSaveInterestPoints(const QString filePath) const{
     auto resultImage = picture.getImage();
+    QPainter painter(&resultImage);
+    painter.setPen(qRgb(255,0,0));
     for(auto point : points) {
-        resultImage.setPixel(point.y, point.x ,qRgb(255,0,0));
+        painter.drawEllipse(point.y,point.x, 2,2);
     }
     resultImage.save(filePath,"jpg");
 }

@@ -100,7 +100,7 @@ Picture Picture::useFilter(const PictureFilterContent &pictureFilterContent, Bor
         return resultPicture;
 }
 
-Picture Picture::useTwoFilter(const PictureFilterContent &fFilter, const PictureFilterContent &sFilter, BorderMode border) const{
+Picture Picture::useFilter(const PictureFilterContent &fFilter, const PictureFilterContent &sFilter, BorderMode border) const{
     auto resultPicture = useFilter(fFilter, border);
     resultPicture = resultPicture.useFilter(sFilter, border);
     return resultPicture;

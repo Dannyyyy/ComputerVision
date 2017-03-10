@@ -48,7 +48,7 @@ void MainWindow::lab1(){
     pictureSobel.pictureNormalize();
     pictureSobel.saveImage(filePath + "sobel");
     // Гаусс
-    auto pictureGauss = picture.useTwoFilter(PictureFilter::getGaussX(5),PictureFilter::getGaussY(5),BorderMode::ReflectBorderValue);
+    auto pictureGauss = picture.useFilter(PictureFilter::getGaussX(5),PictureFilter::getGaussY(5),BorderMode::ReflectBorderValue);
     pictureGauss.saveImage(filePath + "gauss");
     //
     auto imageResult = pictureSobel.getImage();
@@ -89,13 +89,13 @@ void MainWindow::on_pushButton_clicked()
         }
         //lab 3
         auto interestPointsMoravek = new PointSearch(picture);
-        interestPointsMoravek->moravek(BorderMode::ReflectBorderValue, 0.01);
-        interestPointsMoravek->adaptiveNonMaxSuppression(300);
+        interestPointsMoravek->moravek(BorderMode::ReflectBorderValue, 0.02);
+        interestPointsMoravek->adaptiveNonMaxSuppression(500);
         interestPointsMoravek->drawAndSaveInterestPoints("C:\\AGTU\\pictures\\moravek.jpg");
 
         auto interestPointsHarris = new PointSearch(picture);
         interestPointsHarris->harris(BorderMode::ReflectBorderValue, 0.01);
-        interestPointsHarris->adaptiveNonMaxSuppression(300);
+        interestPointsHarris->adaptiveNonMaxSuppression(500);
         interestPointsHarris->drawAndSaveInterestPoints("C:\\AGTU\\pictures\\harris.jpg");
     }
     else

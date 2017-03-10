@@ -30,7 +30,7 @@ public:
     QImage getImage() const;
     void saveImage(QString filePath) const;
     Picture useFilter(const PictureFilterContent &pictureFilterContent, BorderMode border) const;
-    Picture useTwoFilter(const PictureFilterContent &fFilter, const PictureFilterContent &sFilter, BorderMode border) const;
+    Picture useFilter(const PictureFilterContent &fFilter, const PictureFilterContent &sFilter, BorderMode border) const;
     Picture scalePicture() const;
     static Picture calculationGradient(const Picture &sobelX, const Picture &sobelY);
     void pictureNormalize();
