@@ -13,6 +13,7 @@
 #include <border.h>
 #include <gaussianpyramid.h>
 #include <pointsearch.h>
+#include <descriptorsearch.h>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -64,6 +65,19 @@ void MainWindow::lab2(){
     outputPyramid(*pyramid,"C:\\AGTU\\pictures\\");
 }
 
+void MainWindow::lab3(){
+    auto interestPointsMoravek = new PointSearch(picture);
+    interestPointsMoravek->moravek(BorderMode::ReflectBorderValue, 0.02);
+    interestPointsMoravek->adaptiveNonMaxSuppression(500);
+    interestPointsMoravek->drawAndSaveInterestPoints("C:\\AGTU\\pictures\\moravek.jpg");
+
+    auto interestPointsHarris = new PointSearch(picture);
+    interestPointsHarris->harris(BorderMode::ReflectBorderValue, 0.01);
+    interestPointsHarris->adaptiveNonMaxSuppression(500);
+    interestPointsHarris->drawAndSaveInterestPoints("C:\\AGTU\\pictures\\harris.jpg");
+}
+
+
 //image load
 void MainWindow::on_pushButton_clicked()
 {
@@ -87,16 +101,8 @@ void MainWindow::on_pushButton_clicked()
                 picture.setIntensity(i,j,qRed(intensity),qGreen(intensity),qBlue(intensity));
             }
         }
-        //lab 3
-        auto interestPointsMoravek = new PointSearch(picture);
-        interestPointsMoravek->moravek(BorderMode::ReflectBorderValue, 0.02);
-        interestPointsMoravek->adaptiveNonMaxSuppression(500);
-        interestPointsMoravek->drawAndSaveInterestPoints("C:\\AGTU\\pictures\\moravek.jpg");
-
-        auto interestPointsHarris = new PointSearch(picture);
-        interestPointsHarris->harris(BorderMode::ReflectBorderValue, 0.01);
-        interestPointsHarris->adaptiveNonMaxSuppression(500);
-        interestPointsHarris->drawAndSaveInterestPoints("C:\\AGTU\\pictures\\harris.jpg");
+        //lab3();
+        auto descriptor = new DescriptorSearch(picture, BorderMode::ReflectBorderValue);
     }
     else
     {

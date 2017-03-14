@@ -22,6 +22,7 @@ public:
     void searchInterestPoints(Picture &resultPicture, BorderMode border, double treshold);
     void adaptiveNonMaxSuppression(const int needfulCountPoints);
     void drawAndSaveInterestPoints(const QString filePath) const;
+    vector<InterestPoint> Points() const;
 };
 
 #endif // POINTSEARCH_H

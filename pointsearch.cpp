@@ -137,3 +137,7 @@ void PointSearch::drawAndSaveInterestPoints(const QString filePath) const{
     }
     resultImage.save(filePath,"jpg");
 }
+
+vector<InterestPoint> PointSearch::Points()const{
+    return points;
+}

@@ -28,13 +28,15 @@ SOURCES += main.cpp\
     picture.cpp \
     picturefilter.cpp \
     gaussianpyramid.cpp \
-    pointsearch.cpp
+    pointsearch.cpp \
+    descriptorsearch.cpp
 
 HEADERS  += mainwindow.h \
     picture.h \
     picturefilter.h \
     border.h \
     gaussianpyramid.h \
-    pointsearch.h
+    pointsearch.h \
+    descriptorsearch.h
 
 FORMS    += mainwindow.ui
