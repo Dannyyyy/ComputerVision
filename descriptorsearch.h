@@ -8,6 +8,8 @@
 struct Descriptor{
     int x;
     int y;
+    int size;
+    unique_ptr<double []> content;
 };
 
 class DescriptorSearch{
@@ -16,7 +18,7 @@ private:
     vector<Descriptor> descriptors;
 public:
     DescriptorSearch(const Picture &picture, BorderMode border);
-    void descriptorNormalize();
+    void descriptorNormalize(Descriptor &descriptor);
 };
 
 #endif // DESCRIPTORSEARCH_H
