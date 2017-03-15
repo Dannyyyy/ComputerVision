@@ -4,15 +4,26 @@
 #include <iostream>
 
 DescriptorSearch::DescriptorSearch(const Picture &picture, BorderMode border):picture(picture){
+    const double treshold = 0.01;
+    const int descriptorSize = histogramXCount * histogramYCount * histogramComponentsCount;
     auto interestPoints = new PointSearch(picture);
-    interestPoints->harris(border, 0.01);
+    interestPoints->harris(border, treshold);
     interestPoints->adaptiveNonMaxSuppression(500);
     for(auto point : interestPoints->Points()){
-        //нормализация
-        //обрезание по пороговому значению(0.2)
-        //повторная нормализация
-        //descriptors.emplace_back(Descriptor{point.x,point.y});
+        auto descriptor = Descriptor{point.x, point.y, descriptorSize};
+        //descriptor content
+        //descriptorNormalize(descriptor);
+        //tresholdTrim(descriptor);
+        //descriptorNormalize(descriptor);
+        //descriptors.emplace_back(descriptor);
     }
+}
+
+void DescriptorSearch::computeContent(BorderMode border){
+    auto sobelX = picture.useFilter(PictureFilter::getSobelGX(),border);
+    auto sobelY = picture.useFilter(PictureFilter::getSobelGY(),border);
+    const int descriptorSize = histogramXCount * histogramYCount * histogramComponentsCount;
+    auto content = make_unique<double []>(descriptorSize);
 }
 
 void DescriptorSearch::descriptorNormalize(Descriptor &descriptor){
@@ -35,7 +46,7 @@ void DescriptorSearch::descriptorNormalize(Descriptor &descriptor){
     */
 }
 
-void DescriptorSearch::trimTreshold(Descriptor &descriptor){
+void DescriptorSearch::tresholdTrim(Descriptor &descriptor){
     const double treshold = 0.2;
     const int size = descriptor.size;
     auto transformFunc = [&](double element){

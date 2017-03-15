@@ -14,12 +14,16 @@ struct Descriptor{
 
 class DescriptorSearch{
 private:
+    const int histogramXCount = 4;
+    const int histogramYCount = 4;
+    const int histogramComponentsCount = 8;
     Picture picture;
     vector<Descriptor> descriptors;
 public:
     DescriptorSearch(const Picture &picture, BorderMode border);
     void descriptorNormalize(Descriptor &descriptor);
-    void trimTreshold(Descriptor &descriptor);
+    void tresholdTrim(Descriptor &descriptor);
+    void computeContent(BorderMode border);
 };
 
 #endif // DESCRIPTORSEARCH_H
