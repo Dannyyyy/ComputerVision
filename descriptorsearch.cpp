@@ -34,3 +34,16 @@ void DescriptorSearch::descriptorNormalize(Descriptor &descriptor){
     transform(v.begin(), v.end(),v.begin(),transformFunc);
     */
 }
+
+void DescriptorSearch::trimTreshold(Descriptor &descriptor){
+    const double treshold = 0.2;
+    const int size = descriptor.size;
+    auto transformFunc = [&](double element){
+       return min(element, treshold);
+    };
+    transform(&descriptor.content[0],&descriptor.content[size],&descriptor.content[0],transformFunc);
+    /*
+    vector<double> v = { 0.1, 2, 0.3, 0.04 };
+    transform(v.begin(), v.end(),v.begin(),transformFunc);
+    */
+}

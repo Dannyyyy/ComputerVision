@@ -19,6 +19,7 @@ private:
 public:
     DescriptorSearch(const Picture &picture, BorderMode border);
     void descriptorNormalize(Descriptor &descriptor);
+    void trimTreshold(Descriptor &descriptor);
 };
 
 #endif // DESCRIPTORSEARCH_H
