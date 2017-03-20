@@ -4,25 +4,26 @@
 #include <numeric>
 #include <algorithm>
 #include <iostream>
+#include <vector>
+
+using namespace std;
 
 DescriptorSearch::DescriptorSearch(const Picture &picture, BorderMode border):picture(picture){
     const double treshold = 0.01;
-    const int descriptorSize = regionSizeX * regionSizeY * partsCount;
     auto interestPoints = new PointSearch(picture);
     interestPoints->harris(border, treshold);
-    interestPoints->adaptiveNonMaxSuppression(3);
+    interestPoints->adaptiveNonMaxSuppression(15);
     for(auto point : interestPoints->Points()){
-        auto descriptor = Descriptor{point.x, point.y, descriptorSize};
-        this->computeContent(point, border);
-        //descriptor content
-        //descriptorNormalize(descriptor);
-        //tresholdTrim(descriptor);
-        //descriptorNormalize(descriptor);
-        //descriptors.emplace_back(descriptor);
+        auto descriptor = Descriptor{point.x, point.y};
+        descriptor.content = computeContent(point, border);
+        descriptorNormalize(descriptor);
+        tresholdTrim(descriptor);
+        descriptorNormalize(descriptor);
+        descriptors.emplace_back(move(descriptor));
     }
 }
 
-void DescriptorSearch::computeContent(InterestPoint &point, BorderMode border){
+unique_ptr<double[]> DescriptorSearch::computeContent(InterestPoint &point, BorderMode border){
     auto sobelX = picture.useFilter(PictureFilter::getSobelGX(),border);
     auto sobelY = picture.useFilter(PictureFilter::getSobelGY(),border);
 
@@ -44,15 +45,17 @@ void DescriptorSearch::computeContent(InterestPoint &point, BorderMode border){
             double partNum = (atan2(dy,dx)+M_PI)*partsCount/(2*M_PI);
             const double partVariation = partNum - (int)partNum;
             int index = histogramNum * partsCount + (int)partNum % partsCount;
-            content[index] = w * (1 - partVariation);
+            content[index] += w * (1 - partVariation);
             index = histogramNum * partsCount + (int)(partNum+1) % partsCount;
             content[index] += w * partVariation;
         }
     }
+    return content;
 }
+
 void DescriptorSearch::descriptorNormalize(Descriptor &descriptor){
     double sum = 0;
-    const int size = descriptor.size;
+    const int size = regionSizeX * regionSizeY * partsCount;
     auto accumulateFunc = [](double accumulator, double element){
        return accumulator + pow(element,2);
     };
@@ -72,7 +75,7 @@ void DescriptorSearch::descriptorNormalize(Descriptor &descriptor){
 
 void DescriptorSearch::tresholdTrim(Descriptor &descriptor){
     const double treshold = 0.2;
-    const int size = descriptor.size;
+    const int size = regionSizeX * regionSizeY * partsCount;
     auto transformFunc = [&](double element){
        return min(element, treshold);
     };
@@ -81,4 +84,23 @@ void DescriptorSearch::tresholdTrim(Descriptor &descriptor){
     vector<double> v = { 0.1, 2, 0.3, 0.04 };
     transform(v.begin(), v.end(),v.begin(),transformFunc);
     */
+}
+
+void DescriptorSearch::searchOverlap(DescriptorSearch &f, DescriptorSearch &s){
+    const int fDescriptorsCount = f.descriptors.size();
+    const int sDescriptorsCount = s.descriptors.size();
+    const int descriptorSize = regionSizeX * regionSizeY * partsCount;
+    double distance;
+    vector<double> distances;
+    distances.reserve(fDescriptorsCount * sDescriptorsCount);
+    for(int i=0;i<fDescriptorsCount;i++){
+        for(int j=0;j<sDescriptorsCount;j++){
+            distance = 0;
+            for(int n=0;n<descriptorSize;n++){
+                const double dist = f.descriptors[i].content[n] - s.descriptors[j].content[n];
+                distance += pow(dist,2);
+            }
+            distances[i*fDescriptorsCount+j] = sqrt(distance);
+        }
+    }
 }

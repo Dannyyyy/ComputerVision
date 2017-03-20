@@ -8,7 +8,6 @@
 struct Descriptor{
     int x;
     int y;
-    int size;
     unique_ptr<double []> content;
 };
 
@@ -24,7 +23,8 @@ public:
     DescriptorSearch(const Picture &picture, BorderMode border);
     void descriptorNormalize(Descriptor &descriptor);
     void tresholdTrim(Descriptor &descriptor);
-    void computeContent(InterestPoint &point, BorderMode border);
+    unique_ptr<double[]> computeContent(InterestPoint &point, BorderMode border);
+    void searchOverlap(DescriptorSearch &first, DescriptorSearch &second);
 };
 
 #endif // DESCRIPTORSEARCH_H
