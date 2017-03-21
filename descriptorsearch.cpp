@@ -90,6 +90,7 @@ void DescriptorSearch::searchOverlap(DescriptorSearch &f, DescriptorSearch &s){
     const int fDescriptorsCount = f.descriptors.size();
     const int sDescriptorsCount = s.descriptors.size();
     const int descriptorSize = regionSizeX * regionSizeY * partsCount;
+    const double treshhold = 0.2;
     double distance;
     vector<double> distances;
     distances.reserve(fDescriptorsCount * sDescriptorsCount);
@@ -101,6 +102,34 @@ void DescriptorSearch::searchOverlap(DescriptorSearch &f, DescriptorSearch &s){
                 distance += pow(dist,2);
             }
             distances[i*fDescriptorsCount+j] = sqrt(distance);
+        }
+    }
+
+    int firstOverlap, secondOverlap;
+    double firstOverlapDistance, secondOverlapDistance;
+    for(int i=0;i<fDescriptorsCount;i++){
+        firstOverlap = 0;
+        secondOverlap = 1;
+        const int index = i*fDescriptorsCount;
+        for(int j=2;j<sDescriptorsCount;j++){
+            distance = distances[index+j];
+            firstOverlapDistance = distances[index+firstOverlap];
+            secondOverlapDistance = distances[index+secondOverlap];
+            if(distance < firstOverlapDistance){
+                if(distance < secondOverlapDistance){
+                    firstOverlap = secondOverlap;
+                    secondOverlap = j;
+                }
+                else {
+                    secondOverlap = secondOverlap;
+                    firstOverlap = j;
+                }
+            }
+        }
+        firstOverlapDistance = distances[index+firstOverlap];
+        secondOverlapDistance = distances[index+secondOverlap];
+        if(abs(firstOverlapDistance - secondOverlapDistance) > treshhold){
+            // TODO сохранение
         }
     }
 }
