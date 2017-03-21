@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <iostream>
 #include <vector>
+#include <QPainter>
 
 using namespace std;
 
@@ -12,7 +13,7 @@ DescriptorSearch::DescriptorSearch(const Picture &picture, BorderMode border):pi
     const double treshold = 0.01;
     auto interestPoints = new PointSearch(picture);
     interestPoints->harris(border, treshold);
-    interestPoints->adaptiveNonMaxSuppression(15);
+    interestPoints->adaptiveNonMaxSuppression(500);
     for(auto point : interestPoints->Points()){
         auto descriptor = Descriptor{point.x, point.y};
         descriptor.content = computeContent(point, border);
@@ -86,14 +87,14 @@ void DescriptorSearch::tresholdTrim(Descriptor &descriptor){
     */
 }
 
-void DescriptorSearch::searchOverlap(DescriptorSearch &f, DescriptorSearch &s){
-    const int fDescriptorsCount = f.descriptors.size();
-    const int sDescriptorsCount = s.descriptors.size();
-    const int descriptorSize = regionSizeX * regionSizeY * partsCount;
-    const double treshhold = 0.2;
+vector<NearestDescriptors> DescriptorSearch::searchOverlap(const DescriptorSearch &f,const DescriptorSearch &s){
+    int fDescriptorsCount = f.descriptors.size();
+    int sDescriptorsCount = s.descriptors.size();
+    int descriptorSize = regionSizeX * regionSizeY * partsCount;
+    double treshhold = 0.2;
     double distance;
     vector<double> distances;
-    distances.reserve(fDescriptorsCount * sDescriptorsCount);
+    distances.resize(fDescriptorsCount * sDescriptorsCount);
     for(int i=0;i<fDescriptorsCount;i++){
         for(int j=0;j<sDescriptorsCount;j++){
             distance = 0;
@@ -104,7 +105,8 @@ void DescriptorSearch::searchOverlap(DescriptorSearch &f, DescriptorSearch &s){
             distances[i*fDescriptorsCount+j] = sqrt(distance);
         }
     }
-
+    vector<NearestDescriptors> overlaps;
+    overlaps.resize(fDescriptorsCount);
     int firstOverlap, secondOverlap;
     double firstOverlapDistance, secondOverlapDistance;
     for(int i=0;i<fDescriptorsCount;i++){
@@ -129,7 +131,28 @@ void DescriptorSearch::searchOverlap(DescriptorSearch &f, DescriptorSearch &s){
         firstOverlapDistance = distances[index+firstOverlap];
         secondOverlapDistance = distances[index+secondOverlap];
         if(abs(firstOverlapDistance - secondOverlapDistance) > treshhold){
-            // TODO сохранение
+            const int fX = f.descriptors[i].x;
+            const int fY = f.descriptors[i].y;
+            const int sX = s.descriptors[secondOverlap].x;
+            const int sY = s.descriptors[secondOverlap].y;
+            overlaps.emplace_back(NearestDescriptors{fX,fY,sX,sY});
         }
     }
+    return overlaps;
+}
+
+void DescriptorSearch::saveOverlaps(QImage &image, QString filePath, vector<NearestDescriptors> overlaps, int width){
+    QPainter painter(&image);
+    for(auto overlap: overlaps){
+        painter.setPen(qRgb(255,0,0));
+        painter.drawEllipse(overlap.fX, overlap.fY, 2,2);
+        painter.drawEllipse(overlap.sX + width, overlap.sY, 2,2);
+        const int red = abs(rand())%255;
+        const int green = abs(rand())%255;
+        const int blue = abs(rand())%255;
+        cout<<red<<":"<<green<<":"<<blue<<endl;
+        painter.setPen(QColor(red,green, blue));
+        painter.drawLine(overlap.fX, overlap.fY, overlap.sX + width, overlap.sY);
+    }
+    image.save(filePath + "result.jpg", "jpg");
 }

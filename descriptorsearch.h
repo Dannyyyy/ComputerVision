@@ -11,12 +11,19 @@ struct Descriptor{
     unique_ptr<double []> content;
 };
 
+struct NearestDescriptors{
+    int fX;
+    int fY;
+    int sX;
+    int sY;
+};
+
 class DescriptorSearch{
 private:
-    const int regionSizeX = 4;
-    const int regionSizeY = 4;
-    const int partsCount = 8;
-    const int histogramSize = 4;
+    static const int regionSizeX = 4;
+    static const int regionSizeY = 4;
+    static const int partsCount = 8;
+    static const int histogramSize = 4;
     Picture picture;
     vector<Descriptor> descriptors;
 public:
@@ -24,7 +31,8 @@ public:
     void descriptorNormalize(Descriptor &descriptor);
     void tresholdTrim(Descriptor &descriptor);
     unique_ptr<double[]> computeContent(InterestPoint &point, BorderMode border);
-    void searchOverlap(DescriptorSearch &first, DescriptorSearch &second);
+    static vector<NearestDescriptors> searchOverlap(const DescriptorSearch &first,const DescriptorSearch &second);
+    static void saveOverlaps(QImage &image, QString filePath, vector<NearestDescriptors> overlaps, int width);
 };
 
 #endif // DESCRIPTORSEARCH_H

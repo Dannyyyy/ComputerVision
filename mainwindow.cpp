@@ -14,6 +14,8 @@
 #include <gaussianpyramid.h>
 #include <pointsearch.h>
 #include <descriptorsearch.h>
+#include <iostream>
+#include <QPainter>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -36,6 +38,22 @@ void MainWindow::outputPyramid(const GaussianPyramid &pyramid, QString filePath)
             pyramid.savePicture(i,j,fileName);
         }
     }
+}
+
+Picture MainWindow::loadPicture(QString filePath){
+    QImage imageInitial(filePath);
+    const int height = imageInitial.height();
+    const int width = imageInitial.width();
+    auto initialPicture = Picture(height, width);
+    for(int i=0;i<height;i++)
+    {
+        for(int j=0;j<width;j++)
+        {
+            auto intensity = imageInitial.pixel(j,i);
+            initialPicture.setIntensity(i,j,qRed(intensity),qGreen(intensity),qBlue(intensity));
+        }
+    }
+    return initialPicture;
 }
 
 void MainWindow::lab1(){
@@ -77,10 +95,41 @@ void MainWindow::lab3(){
     interestPointsHarris->drawAndSaveInterestPoints("C:\\AGTU\\pictures\\harris.jpg");
 }
 
+void MainWindow::lab4(){
+    auto firstPicture = loadPicture("C:\\AGTU\\pictures\\first.jpg");
+    auto secondPicture = loadPicture("C:\\AGTU\\pictures\\second.jpg");
+    auto firstDescriptors = new DescriptorSearch(firstPicture, BorderMode::ReflectBorderValue);
+    auto secondDescriptors = new DescriptorSearch(secondPicture, BorderMode::ReflectBorderValue);
+    vector<NearestDescriptors> overlaps = DescriptorSearch::searchOverlap(*firstDescriptors, *secondDescriptors);
+    const int fHeight = firstPicture.getHeight();
+    const int fWidth = firstPicture.getWidth();
+    const int sHeight = secondPicture.getHeight();
+    const int sWidth = secondPicture.getWidth();
+    const int rHeight = max(fHeight,sHeight);
+    const int rWidth = fWidth + sWidth;
+    QImage resultImage = QImage(rWidth, rHeight, QImage::Format_RGB32);
+
+    for (int x = 0; x < fHeight; x++) {
+       for (int y = 0; y < fWidth; y++) {
+               int intensity = (int)(firstPicture.getIntensity(x, y) * 255);
+               resultImage.setPixel(y, x, qRgb(intensity, intensity, intensity));
+       }
+    }
+    for (int x = 0; x < sHeight; x++) {
+       for (int y = 0; y < sWidth; y++) {
+               int intensity = (int)(secondPicture.getIntensity(x, y) * 255);
+               resultImage.setPixel(y+fWidth, x, qRgb(intensity, intensity, intensity));
+       }
+    }
+    DescriptorSearch::saveOverlaps(resultImage,"C:\\AGTU\\pictures\\",overlaps,fWidth);
+}
+
 
 //image load
 void MainWindow::on_pushButton_clicked()
 {
+    lab4();
+    /*
     const QString filePath = QFileDialog::getOpenFileName(0, "Выбор изображения...", "", "*.jpg");
     if(filePath != "")
     {
@@ -110,4 +159,5 @@ void MainWindow::on_pushButton_clicked()
         msgBox.setText("Изображение не выбрано.");
         msgBox.exec();
     }
+    */
 }
