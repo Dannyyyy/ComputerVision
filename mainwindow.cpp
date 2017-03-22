@@ -96,28 +96,52 @@ void MainWindow::lab3(){
 }
 
 void MainWindow::lab4(){
-    auto firstPicture = loadPicture("C:\\AGTU\\pictures\\first.jpg");
-    auto secondPicture = loadPicture("C:\\AGTU\\pictures\\second.jpg");
-    auto firstDescriptors = new DescriptorSearch(firstPicture, BorderMode::ReflectBorderValue);
-    auto secondDescriptors = new DescriptorSearch(secondPicture, BorderMode::ReflectBorderValue);
-    vector<NearestDescriptors> overlaps = DescriptorSearch::searchOverlap(*firstDescriptors, *secondDescriptors);
-    const int fHeight = firstPicture.getHeight();
-    const int fWidth = firstPicture.getWidth();
-    const int sHeight = secondPicture.getHeight();
-    const int sWidth = secondPicture.getWidth();
+    const double treshold = 0.01;
+    const int pointsCount = 500;
+    auto border = BorderMode::ReflectBorderValue;
+
+    auto fPicture = loadPicture("C:\\AGTU\\pictures\\first.jpg");
+    auto fInterestPoints = new PointSearch(fPicture);
+    fInterestPoints->harris(border, treshold);
+    fInterestPoints->adaptiveNonMaxSuppression(pointsCount);
+
+    auto sPicture = loadPicture("C:\\AGTU\\pictures\\second.jpg");
+    auto sInterestPoints = new PointSearch(sPicture);
+    sInterestPoints->harris(border, treshold);
+    sInterestPoints->adaptiveNonMaxSuppression(pointsCount);
+
+    auto sobelGX = PictureFilter::getSobelGX();
+    auto sobelGY = PictureFilter::getSobelGY();
+
+    auto fSobelX = fPicture.useFilter(sobelGX,border);
+    auto fSobelY = fPicture.useFilter(sobelGY,border);
+    auto sSobelX = sPicture.useFilter(sobelGX,border);
+    auto sSobelY = sPicture.useFilter(sobelGY,border);
+
+    auto fPoints = fInterestPoints->Points();
+    auto sPoints = sInterestPoints->Points();
+
+    auto fDescriptors = new DescriptorSearch(fSobelX, fSobelY, border, fPoints);
+    auto sDescriptors = new DescriptorSearch(sSobelX, sSobelY, border, sPoints);
+
+    vector<NearestDescriptors> overlaps = DescriptorSearch::searchOverlap(*fDescriptors, *sDescriptors);
+    const int fHeight = fPicture.getHeight();
+    const int fWidth = fPicture.getWidth();
+    const int sHeight = sPicture.getHeight();
+    const int sWidth = sPicture.getWidth();
     const int rHeight = max(fHeight,sHeight);
     const int rWidth = fWidth + sWidth;
     QImage resultImage = QImage(rWidth, rHeight, QImage::Format_RGB32);
 
     for (int x = 0; x < fHeight; x++) {
        for (int y = 0; y < fWidth; y++) {
-               int intensity = (int)(firstPicture.getIntensity(x, y) * 255);
+               int intensity = (int)(fPicture.getIntensity(x, y) * 255);
                resultImage.setPixel(y, x, qRgb(intensity, intensity, intensity));
        }
     }
     for (int x = 0; x < sHeight; x++) {
        for (int y = 0; y < sWidth; y++) {
-               int intensity = (int)(secondPicture.getIntensity(x, y) * 255);
+               int intensity = (int)(sPicture.getIntensity(x, y) * 255);
                resultImage.setPixel(y+fWidth, x, qRgb(intensity, intensity, intensity));
        }
     }

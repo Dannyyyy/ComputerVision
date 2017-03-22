@@ -9,41 +9,33 @@
 
 using namespace std;
 
-DescriptorSearch::DescriptorSearch(const Picture &picture, BorderMode border):picture(picture){
-    const double treshold = 0.01;
-    auto interestPoints = new PointSearch(picture);
-    interestPoints->harris(border, treshold);
-    interestPoints->adaptiveNonMaxSuppression(500);
-    for(auto point : interestPoints->Points()){
+DescriptorSearch::DescriptorSearch(const Picture &sobelX, const Picture &sobelY, BorderMode border, const vector<InterestPoint> &points){
+    for(auto point : points){
         auto descriptor = Descriptor{point.x, point.y};
-        descriptor.content = computeContent(point, border);
-        descriptorNormalize(descriptor);
-        tresholdTrim(descriptor);
-        descriptorNormalize(descriptor);
+        descriptor.content = DescriptorSearch::computeContent(sobelX, sobelY, point, border);
+        DescriptorSearch::descriptorNormalize(descriptor);
+        DescriptorSearch::tresholdTrim(descriptor);
+        DescriptorSearch::descriptorNormalize(descriptor);
         descriptors.emplace_back(move(descriptor));
     }
 }
 
-unique_ptr<double[]> DescriptorSearch::computeContent(InterestPoint &point, BorderMode border){
-    auto sobelX = picture.useFilter(PictureFilter::getSobelGX(),border);
-    auto sobelY = picture.useFilter(PictureFilter::getSobelGY(),border);
-
+unique_ptr<double[]> DescriptorSearch::computeContent(const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border){
     const int descriptorSize = regionSizeX * regionSizeY * partsCount;
     auto content = make_unique<double []>(descriptorSize);
     const int size = regionSizeX * histogramSize;
     const int halfSize = size/2;
     auto gauss = PictureFilter::getGaussXY(histogramSize/2);
-    double dx, dy;
 
     for(int x=-halfSize; x<halfSize; x++){
         for(int y=-halfSize; y<halfSize; y++){
-            int pointX = point.x + x;
-            int pointY = point.y + y;
-            dx = sobelX.getIntensity(pointX, pointY, border);
-            dy = sobelY.getIntensity(pointX, pointY, border);
-            double w = sqrt(pow(dx,2) + pow(dy,2)) * gauss.getContentCell(x+halfSize, y+halfSize);
+            const int pointX = point.x + x;
+            const int pointY = point.y + y;
+            const double dx = sobelX.getIntensity(pointX, pointY, border);
+            const double dy = sobelY.getIntensity(pointX, pointY, border);
+            const double w = sqrt(pow(dx,2) + pow(dy,2)) * gauss.getContentCell(x+halfSize, y+halfSize);
             const int histogramNum = (x + halfSize)/histogramSize*regionSizeX + (y+halfSize)/histogramSize;
-            double partNum = (atan2(dy,dx)+M_PI)*partsCount/(2*M_PI);
+            const double partNum = (atan2(dy,dx) / M_PI + 1)*partsCount/2;
             const double partVariation = partNum - (int)partNum;
             int index = histogramNum * partsCount + (int)partNum % partsCount;
             content[index] += w * (1 - partVariation);
@@ -66,12 +58,6 @@ void DescriptorSearch::descriptorNormalize(Descriptor &descriptor){
     sum = accumulate(&descriptor.content[0],&descriptor.content[size],0.,accumulateFunc);
     sum = sqrt(sum);
     transform(&descriptor.content[0],&descriptor.content[size],&descriptor.content[0],transformFunc);
-    /*
-    vector<double> v = { 1, 2, 3, 4 };
-    sum = accumulate(v.begin(),v.end(),0.,accumulateFunc);
-    sum = sqrt(sum);
-    transform(v.begin(), v.end(),v.begin(),transformFunc);
-    */
 }
 
 void DescriptorSearch::tresholdTrim(Descriptor &descriptor){
@@ -81,23 +67,17 @@ void DescriptorSearch::tresholdTrim(Descriptor &descriptor){
        return min(element, treshold);
     };
     transform(&descriptor.content[0],&descriptor.content[size],&descriptor.content[0],transformFunc);
-    /*
-    vector<double> v = { 0.1, 2, 0.3, 0.04 };
-    transform(v.begin(), v.end(),v.begin(),transformFunc);
-    */
 }
 
-vector<NearestDescriptors> DescriptorSearch::searchOverlap(const DescriptorSearch &f,const DescriptorSearch &s){
-    int fDescriptorsCount = f.descriptors.size();
-    int sDescriptorsCount = s.descriptors.size();
-    int descriptorSize = regionSizeX * regionSizeY * partsCount;
-    double treshhold = 0.2;
-    double distance;
+vector<double> DescriptorSearch::calculateDistance(const DescriptorSearch &f, const DescriptorSearch &s){
+    const int fDescriptorsCount = f.descriptors.size();
+    const int sDescriptorsCount = s.descriptors.size();
+    const int descriptorSize = regionSizeX * regionSizeY * partsCount;
     vector<double> distances;
     distances.resize(fDescriptorsCount * sDescriptorsCount);
     for(int i=0;i<fDescriptorsCount;i++){
         for(int j=0;j<sDescriptorsCount;j++){
-            distance = 0;
+            double distance = 0;
             for(int n=0;n<descriptorSize;n++){
                 const double dist = f.descriptors[i].content[n] - s.descriptors[j].content[n];
                 distance += pow(dist,2);
@@ -105,18 +85,24 @@ vector<NearestDescriptors> DescriptorSearch::searchOverlap(const DescriptorSearc
             distances[i*fDescriptorsCount+j] = sqrt(distance);
         }
     }
+    return distances;
+}
+
+vector<NearestDescriptors> DescriptorSearch::searchOverlap(const DescriptorSearch &f,const DescriptorSearch &s){
+    const int fDescriptorsCount = f.descriptors.size();
+    const int sDescriptorsCount = s.descriptors.size();
+    const double treshhold = 0.2;
+    vector<double> distances = DescriptorSearch::calculateDistance(f,s);
     vector<NearestDescriptors> overlaps;
     overlaps.resize(fDescriptorsCount);
-    int firstOverlap, secondOverlap;
-    double firstOverlapDistance, secondOverlapDistance;
     for(int i=0;i<fDescriptorsCount;i++){
-        firstOverlap = 0;
-        secondOverlap = 1;
+        int firstOverlap = 0;
+        int secondOverlap = 1;
         const int index = i*fDescriptorsCount;
         for(int j=2;j<sDescriptorsCount;j++){
-            distance = distances[index+j];
-            firstOverlapDistance = distances[index+firstOverlap];
-            secondOverlapDistance = distances[index+secondOverlap];
+            double distance = distances[index+j];
+            double firstOverlapDistance = distances[index+firstOverlap];
+            double secondOverlapDistance = distances[index+secondOverlap];
             if(distance < firstOverlapDistance){
                 if(distance < secondOverlapDistance){
                     firstOverlap = secondOverlap;
@@ -128,8 +114,8 @@ vector<NearestDescriptors> DescriptorSearch::searchOverlap(const DescriptorSearc
                 }
             }
         }
-        firstOverlapDistance = distances[index+firstOverlap];
-        secondOverlapDistance = distances[index+secondOverlap];
+        double firstOverlapDistance = distances[index+firstOverlap];
+        double secondOverlapDistance = distances[index+secondOverlap];
         if(abs(firstOverlapDistance - secondOverlapDistance) > treshhold){
             const int fX = f.descriptors[i].x;
             const int fY = f.descriptors[i].y;
@@ -141,7 +127,7 @@ vector<NearestDescriptors> DescriptorSearch::searchOverlap(const DescriptorSearc
     return overlaps;
 }
 
-void DescriptorSearch::saveOverlaps(QImage &image, QString filePath, vector<NearestDescriptors> overlaps, int width){
+void DescriptorSearch::saveOverlaps(QImage &image, QString filePath, const vector<NearestDescriptors> &overlaps, const int width){
     QPainter painter(&image);
     for(auto overlap: overlaps){
         painter.setPen(qRgb(255,0,0));
