@@ -37,9 +37,19 @@ unique_ptr<double[]> DescriptorSearch::computeContent(const Picture &sobelX, con
             const int histogramNum = (x + halfSize)/histogramSize*regionSizeX + (y+halfSize)/histogramSize;
             const double partNum = (atan2(dy,dx) / M_PI + 1)*partsCount/2;
             const double partVariation = partNum - (int)partNum;
-            int index = histogramNum * partsCount + (int)partNum % partsCount;
+            int index = histogramNum * partsCount + (int)round(partNum) % partsCount;
             content[index] += w * (1 - partVariation);
-            index = histogramNum * partsCount + (int)(partNum+1) % partsCount;
+            if(round(partNum) > floor(partNum)) {
+                index = histogramNum * partsCount + (int)round(partNum + 1) % partsCount;
+            }
+            else {
+                if((int)round(partNum) == 0) {
+                    index = histogramNum * partsCount + (partsCount - 1);
+                }
+                else {
+                    index = histogramNum * partsCount + (int)round(partNum - 1) % partsCount;
+                }
+            }
             content[index] += w * partVariation;
         }
     }
