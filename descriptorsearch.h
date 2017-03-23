@@ -25,14 +25,14 @@ private:
     static const int partsCount = 8;
     static const int histogramSize = 4;
     vector<Descriptor> descriptors;
-public:
-    DescriptorSearch(const Picture &sobelX, const Picture &sobelY, BorderMode border, const vector<InterestPoint> &points);
     static void descriptorNormalize(Descriptor &descriptor);
     static void tresholdTrim(Descriptor &descriptor);
     static unique_ptr<double[]> computeContent(const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border);
-    static vector<NearestDescriptors> searchOverlap(const DescriptorSearch &first,const DescriptorSearch &second);
-    static void saveOverlaps(QImage &image, QString filePath, const vector<NearestDescriptors> &overlaps, const int width);
     static vector<double> calculateDistance(const DescriptorSearch &f, const DescriptorSearch &s);
+public:
+    DescriptorSearch(const Picture &sobelX, const Picture &sobelY, BorderMode border, const vector<InterestPoint> &points);
+    static vector<NearestDescriptors> searchOverlap(const DescriptorSearch &first,const DescriptorSearch &second);
+    static void saveOverlaps(QImage &image, QString filePath, const vector<NearestDescriptors> &overlaps, const int width);    
 };
 
 #endif // DESCRIPTORSEARCH_H

@@ -6,6 +6,8 @@
 #include <iostream>
 #include <vector>
 #include <QPainter>
+#include <cstdlib>
+#include <ctime>
 
 using namespace std;
 
@@ -138,6 +140,7 @@ vector<NearestDescriptors> DescriptorSearch::searchOverlap(const DescriptorSearc
 }
 
 void DescriptorSearch::saveOverlaps(QImage &image, QString filePath, const vector<NearestDescriptors> &overlaps, const int width){
+    srand(time(NULL));
     QPainter painter(&image);
     for(auto overlap: overlaps){
         painter.setPen(qRgb(255,0,0));
