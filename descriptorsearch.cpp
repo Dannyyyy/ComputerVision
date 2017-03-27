@@ -41,17 +41,7 @@ unique_ptr<double[]> DescriptorSearch::computeContent(const Picture &sobelX, con
             const double partVariation = partNum - (int)partNum;
             int index = histogramNum * partsCount + (int)round(partNum) % partsCount;
             content[index] += w * (1 - partVariation);
-            if(round(partNum) > floor(partNum)) {
-                index = histogramNum * partsCount + (int)round(partNum + 1) % partsCount;
-            }
-            else {
-                if((int)round(partNum) == 0) {
-                    index = histogramNum * partsCount + (partsCount - 1);
-                }
-                else {
-                    index = histogramNum * partsCount + (int)round(partNum - 1) % partsCount;
-                }
-            }
+            index = (int)(histogramNum * partsCount + partNum + 1) % partsCount;
             content[index] += w * partVariation;
         }
     }
@@ -84,6 +74,8 @@ void DescriptorSearch::tresholdTrim(Descriptor &descriptor){
 vector<double> DescriptorSearch::calculateDistance(const DescriptorSearch &f, const DescriptorSearch &s){
     const int fDescriptorsCount = f.descriptors.size();
     const int sDescriptorsCount = s.descriptors.size();
+    cout<<fDescriptorsCount<<endl;
+    cout<<sDescriptorsCount<<endl;
     const int descriptorSize = regionSizeX * regionSizeY * partsCount;
     vector<double> distances;
     distances.resize(fDescriptorsCount * sDescriptorsCount);
@@ -94,7 +86,7 @@ vector<double> DescriptorSearch::calculateDistance(const DescriptorSearch &f, co
                 const double dist = f.descriptors[i].content[n] - s.descriptors[j].content[n];
                 distance += pow(dist,2);
             }
-            distances[i*fDescriptorsCount+j] = sqrt(distance);
+            distances[i*sDescriptorsCount+j] = sqrt(distance);
         }
     }
     return distances;
@@ -105,34 +97,34 @@ vector<NearestDescriptors> DescriptorSearch::searchOverlap(const DescriptorSearc
     const int sDescriptorsCount = s.descriptors.size();
     const double treshhold = 0.2;
     vector<double> distances = DescriptorSearch::calculateDistance(f,s);
+
     vector<NearestDescriptors> overlaps;
     overlaps.resize(fDescriptorsCount);
+    int firstOverlap, secondOverlap;
     for(int i=0;i<fDescriptorsCount;i++){
-        int firstOverlap = 0;
-        int secondOverlap = 1;
-        const int index = i*fDescriptorsCount;
+        const int index = i*sDescriptorsCount;
+        (distances[index] < distances[index + 1] ?
+            firstOverlap = 0, secondOverlap = 1 :
+            firstOverlap = 1, secondOverlap = 0
+        );
         for(int j=2;j<sDescriptorsCount;j++){
             double distance = distances[index+j];
             double firstOverlapDistance = distances[index+firstOverlap];
             double secondOverlapDistance = distances[index+secondOverlap];
-            if(distance < firstOverlapDistance){
-                if(distance < secondOverlapDistance){
-                    firstOverlap = secondOverlap;
-                    secondOverlap = j;
-                }
-                else {
-                    secondOverlap = secondOverlap;
-                    firstOverlap = j;
-                }
-            }
+            (distance < secondOverlapDistance ?
+                (distance < firstOverlapDistance ?
+                    secondOverlap = firstOverlap, firstOverlap = j :
+                    secondOverlap = j) :
+                    (firstOverlap = firstOverlap, secondOverlap = secondOverlap)
+            );
         }
         double firstOverlapDistance = distances[index+firstOverlap];
         double secondOverlapDistance = distances[index+secondOverlap];
         if(abs(firstOverlapDistance - secondOverlapDistance) > treshhold){
             const int fX = f.descriptors[i].x;
             const int fY = f.descriptors[i].y;
-            const int sX = s.descriptors[secondOverlap].x;
-            const int sY = s.descriptors[secondOverlap].y;
+            const int sX = s.descriptors[firstOverlap].x;
+            const int sY = s.descriptors[firstOverlap].y;
             overlaps.emplace_back(NearestDescriptors{fX,fY,sX,sY});
         }
     }
@@ -141,6 +133,7 @@ vector<NearestDescriptors> DescriptorSearch::searchOverlap(const DescriptorSearc
 
 void DescriptorSearch::saveOverlaps(QImage &image, QString filePath, const vector<NearestDescriptors> &overlaps, const int width){
     srand(time(NULL));
+    {
     QPainter painter(&image);
     for(auto overlap: overlaps){
         painter.setPen(qRgb(255,0,0));
@@ -152,6 +145,7 @@ void DescriptorSearch::saveOverlaps(QImage &image, QString filePath, const vecto
         cout<<red<<":"<<green<<":"<<blue<<endl;
         painter.setPen(QColor(red,green, blue));
         painter.drawLine(overlap.fX, overlap.fY, overlap.sX + width, overlap.sY);
+    }
     }
     image.save(filePath + "result.jpg", "jpg");
 }
