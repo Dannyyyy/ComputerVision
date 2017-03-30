@@ -14,7 +14,7 @@ using namespace std;
 DescriptorSearch::DescriptorSearch(const Picture &sobelX, const Picture &sobelY, BorderMode border, const vector<InterestPoint> &points){
     for(auto point : points){
         auto descriptor = Descriptor{point.x, point.y};
-        descriptor.content = DescriptorSearch::computeContent(sobelX, sobelY, point, border);
+        descriptor.content = DescriptorSearch::computeContent(sobelX, sobelY, point, border, 0);
         DescriptorSearch::descriptorNormalize(descriptor);
         DescriptorSearch::tresholdTrim(descriptor);
         DescriptorSearch::descriptorNormalize(descriptor);
@@ -22,21 +22,31 @@ DescriptorSearch::DescriptorSearch(const Picture &sobelX, const Picture &sobelY,
     }
 }
 
-unique_ptr<double[]> DescriptorSearch::computeContent(const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border){
+unique_ptr<double[]> DescriptorSearch::computeContent(const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, double aroundAngle){
     const int descriptorSize = regionSizeX * regionSizeY * partsCount;
     auto content = make_unique<double []>(descriptorSize);
     const int size = regionSizeX * histogramSize;
     const int halfSize = size/2;
     auto gauss = PictureFilter::getGaussXY(histogramSize/2);
+    const double cosAngle = cos(aroundAngle);
+    const double sinAngle = sin(aroundAngle);
+    for(int x=-size; x<size; x++){
+        for(int y=-size; y<size; y++){
 
-    for(int x=-halfSize; x<halfSize; x++){
-        for(int y=-halfSize; y<halfSize; y++){
+            const int aroundX = (int)(x*cosAngle + y*sinAngle);
+            const int aroundY = (int)(y*cosAngle - x*sinAngle);
+            if(aroundX < 0 || aroundX > size || aroundY < 0 || aroundY > size){
+                continue;
+            }
+
             const int pointX = point.x + x;
             const int pointY = point.y + y;
             const double dx = sobelX.getIntensity(pointX, pointY, border);
             const double dy = sobelY.getIntensity(pointX, pointY, border);
-            const double w = sqrt(pow(dx,2) + pow(dy,2)) * gauss.getContentCell(x+halfSize, y+halfSize);
-            const int histogramNum = (x + halfSize)/histogramSize*regionSizeX + (y+halfSize)/histogramSize;
+            const double w = sqrt(pow(dx,2) + pow(dy,2)) * gauss.getContentCell(x+size, y+size);
+
+            const int histogramNum = aroundX/histogramSize*regionSizeX + aroundY/histogramSize;
+
             const double partNum = (atan2(dy,dx) / M_PI + 1)*partsCount/2;
             const double partVariation = partNum - (int)partNum;
             int index = histogramNum * partsCount + (int)round(partNum) % partsCount;
