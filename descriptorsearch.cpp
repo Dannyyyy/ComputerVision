@@ -35,9 +35,9 @@ DescriptorSearch::DescriptorSearch(const Picture &sobelX, const Picture &sobelY,
         DescriptorSearch::findPeaks(firstIndex, secondIndex, content);
         /*
         (content[firstIndex] * 0.8 < content[secondIndex] ?
-            descriptors.emplace_back(descriptor(secondIndex))
+            descriptors.emplace_back(descriptor(secondIndex)), descriptors.emplace_back(descriptor(firstIndex)) :
+            descriptors.emplace_back(descriptor(firstIndex))
         );
-        descriptors.emplace_back(descriptor(firstIndex));
         */
         /*auto descriptor = Descriptor{point.x, point.y};
         descriptor.content = DescriptorSearch::computeContent(sobelX, sobelY, point, border, 0);
