@@ -11,14 +11,41 @@
 
 using namespace std;
 
+void DescriptorSearch::findPeaks(int &firstIndex, int &secondIndex, unique_ptr<double[]> &content){
+    const int descriptorSize = regionSizeX * regionSizeY * partsCount;
+    (content[firstIndex] > content[secondIndex] ?
+        firstIndex = 0, secondIndex = 1 :
+        secondIndex = 0, firstIndex = 1
+    );
+    for (int i = 0; i < descriptorSize; i++) {
+        (content[secondIndex] < content[i] ?
+            (content[firstIndex] < content[i] ?
+                secondIndex = firstIndex, firstIndex = i :
+                secondIndex = i
+            ) :
+            firstIndex = firstIndex, secondIndex = secondIndex
+        );
+    }
+}
+
 DescriptorSearch::DescriptorSearch(const Picture &sobelX, const Picture &sobelY, BorderMode border, const vector<InterestPoint> &points){
     for(auto point : points){
-        auto descriptor = Descriptor{point.x, point.y};
+        int firstIndex = 0, secondIndex = 1;
+        auto content = DescriptorSearch::computeContent(sobelX, sobelY, point, border, 0);
+        DescriptorSearch::findPeaks(firstIndex, secondIndex, content);
+        /*
+        (content[firstIndex] * 0.8 < content[secondIndex] ?
+            descriptors.emplace_back(descriptor(secondIndex))
+        );
+        descriptors.emplace_back(descriptor(firstIndex));
+        */
+        /*auto descriptor = Descriptor{point.x, point.y};
         descriptor.content = DescriptorSearch::computeContent(sobelX, sobelY, point, border, 0);
         DescriptorSearch::descriptorNormalize(descriptor);
         DescriptorSearch::tresholdTrim(descriptor);
         DescriptorSearch::descriptorNormalize(descriptor);
         descriptors.emplace_back(move(descriptor));
+        */
     }
 }
 
@@ -47,7 +74,7 @@ unique_ptr<double[]> DescriptorSearch::computeContent(const Picture &sobelX, con
 
             const int histogramNum = aroundX/histogramSize*regionSizeX + aroundY/histogramSize;
 
-            const double partNum = (atan2(dy,dx) / M_PI + 1)*partsCount/2;
+            const double partNum = ((atan2(dy,dx) - aroundAngle) / M_PI + 1)*partsCount/2;
             const double partVariation = partNum - (int)partNum;
             int index = histogramNum * partsCount + (int)round(partNum) % partsCount;
             content[index] += w * (1 - partVariation);

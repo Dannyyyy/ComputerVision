@@ -29,6 +29,7 @@ private:
     static void tresholdTrim(Descriptor &descriptor);
     static unique_ptr<double[]> computeContent(const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, double aroundAngle);
     static vector<double> calculateDistance(const DescriptorSearch &f, const DescriptorSearch &s);
+    static void findPeaks(int &firstIndex, int &secondIndex, unique_ptr<double []> &content);
 public:
     DescriptorSearch(const Picture &sobelX, const Picture &sobelY, BorderMode border, const vector<InterestPoint> &points);
     static vector<NearestDescriptors> searchOverlap(const DescriptorSearch &first,const DescriptorSearch &second);
