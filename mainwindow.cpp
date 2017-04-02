@@ -125,7 +125,7 @@ void MainWindow::lab4(){
     auto sDescriptors = new DescriptorSearch(sSobelX, sSobelY, border, sPoints);
 
     vector<NearestDescriptors> overlaps = DescriptorSearch::searchOverlap(*fDescriptors, *sDescriptors);
-
+/*
     const int fHeight = fPicture.getHeight();
     const int fWidth = fPicture.getWidth();
     const int sHeight = sPicture.getHeight();
@@ -147,7 +147,7 @@ void MainWindow::lab4(){
        }
     }
     DescriptorSearch::saveOverlaps(resultImage,"C:\\AGTU\\pictures\\",overlaps,fWidth);
-
+    */
 }
 
 

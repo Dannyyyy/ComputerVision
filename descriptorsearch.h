@@ -20,16 +20,21 @@ struct NearestDescriptors{
 
 class DescriptorSearch{
 private:
-    static const int regionSizeX = 4;
-    static const int regionSizeY = 4;
-    static const int partsCount = 8;
-    static const int histogramSize = 4;
+    static const int RegionSizeX = 4;
+    static const int RegionSizeY = 4;
+    static const int PartsCount = 8;
+    static const int HistogramSize = 4;
+    static const int SiftRegionSizeX = 1;
+    static const int SiftRegionSizeY = 1;
+    static const int SiftPartsCount = 36;
+    static const int SiftHistogramSize = 16;
     vector<Descriptor> descriptors;
     static void descriptorNormalize(Descriptor &descriptor);
     static void tresholdTrim(Descriptor &descriptor);
-    static unique_ptr<double[]> computeContent(const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, double aroundAngle);
+    static unique_ptr<double[]> computeContent(const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, double aroundAngle, const int regionSizeX, const int regionSizeY, const int partsCount, const int histogramSize);
     static vector<double> calculateDistance(const DescriptorSearch &f, const DescriptorSearch &s);
-    static void findPeaks(int &firstIndex, int &secondIndex, unique_ptr<double []> &content);
+    static void findPeaks(int &firstIndex, int &secondIndex, const unique_ptr<double []> &content);
+    static Descriptor computeDescriptor(const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, const unique_ptr<double []> &content, const int index);
 public:
     DescriptorSearch(const Picture &sobelX, const Picture &sobelY, BorderMode border, const vector<InterestPoint> &points);
     static vector<NearestDescriptors> searchOverlap(const DescriptorSearch &first,const DescriptorSearch &second);

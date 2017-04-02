@@ -11,8 +11,8 @@
 
 using namespace std;
 
-void DescriptorSearch::findPeaks(int &firstIndex, int &secondIndex, unique_ptr<double[]> &content){
-    const int descriptorSize = regionSizeX * regionSizeY * partsCount;
+void DescriptorSearch::findPeaks(int &firstIndex, int &secondIndex, const unique_ptr<double[]> &content){
+    const int descriptorSize = SiftRegionSizeX * SiftRegionSizeY * SiftPartsCount;
     (content[firstIndex] > content[secondIndex] ?
         firstIndex = 0, secondIndex = 1 :
         secondIndex = 0, firstIndex = 1
@@ -31,14 +31,15 @@ void DescriptorSearch::findPeaks(int &firstIndex, int &secondIndex, unique_ptr<d
 DescriptorSearch::DescriptorSearch(const Picture &sobelX, const Picture &sobelY, BorderMode border, const vector<InterestPoint> &points){
     for(auto point : points){
         int firstIndex = 0, secondIndex = 1;
-        auto content = DescriptorSearch::computeContent(sobelX, sobelY, point, border, 0);
+        auto content = DescriptorSearch::computeContent(sobelX, sobelY, point, border, 0, SiftRegionSizeX,SiftRegionSizeY, SiftPartsCount, SiftHistogramSize);
         DescriptorSearch::findPeaks(firstIndex, secondIndex, content);
-        /*
+
         (content[firstIndex] * 0.8 < content[secondIndex] ?
-            descriptors.emplace_back(descriptor(secondIndex)), descriptors.emplace_back(descriptor(firstIndex)) :
-            descriptors.emplace_back(descriptor(firstIndex))
+            descriptors.emplace_back(move(DescriptorSearch::computeDescriptor(sobelX,sobelY,point, border, content, firstIndex))),
+            descriptors.emplace_back(move(DescriptorSearch::computeDescriptor(sobelX,sobelY,point, border, content, secondIndex))) :
+            descriptors.emplace_back(move(DescriptorSearch::computeDescriptor(sobelX,sobelY,point, border, content, firstIndex)))
         );
-        */
+
         /*auto descriptor = Descriptor{point.x, point.y};
         descriptor.content = DescriptorSearch::computeContent(sobelX, sobelY, point, border, 0);
         DescriptorSearch::descriptorNormalize(descriptor);
@@ -49,7 +50,25 @@ DescriptorSearch::DescriptorSearch(const Picture &sobelX, const Picture &sobelY,
     }
 }
 
-unique_ptr<double[]> DescriptorSearch::computeContent(const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, double aroundAngle){
+Descriptor DescriptorSearch::computeDescriptor(const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, const unique_ptr<double[]> &content, const int index){
+    const int size = SiftRegionSizeX * SiftRegionSizeY * SiftPartsCount;
+    const double h0 = content[index] ;
+    const double hm = content[(index - 1 + size) % size] ;
+    const double hp = content[(index + 1 + size) % size] ;
+     // quadratic interpolation
+    const double di = - 0.5 * (hp - hm) / (hp + hm - 2 * h0) ;
+    const double angle = 2 * M_PI * (index + di + 0.5) / size ;
+    cout<<angle<<endl;
+
+    auto descriptor = Descriptor{point.x, point.y};
+    descriptor.content = DescriptorSearch::computeContent(sobelX, sobelY, point, border, angle, RegionSizeX, RegionSizeY, PartsCount, HistogramSize);
+    DescriptorSearch::descriptorNormalize(descriptor);
+    DescriptorSearch::tresholdTrim(descriptor);
+    DescriptorSearch::descriptorNormalize(descriptor);
+    return descriptor;
+}
+
+unique_ptr<double[]> DescriptorSearch::computeContent(const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, double aroundAngle, const int regionSizeX, const int regionSizeY, const int partsCount, const int histogramSize){
     const int descriptorSize = regionSizeX * regionSizeY * partsCount;
     auto content = make_unique<double []>(descriptorSize);
     const int size = regionSizeX * histogramSize;
@@ -62,7 +81,7 @@ unique_ptr<double[]> DescriptorSearch::computeContent(const Picture &sobelX, con
 
             const int aroundX = (int)(x*cosAngle + y*sinAngle);
             const int aroundY = (int)(y*cosAngle - x*sinAngle);
-            if(aroundX < 0 || aroundX > size || aroundY < 0 || aroundY > size){
+            if(aroundX < 0 || aroundX >= size || aroundY < 0 || aroundY >= size){
                 continue;
             }
 
@@ -75,6 +94,7 @@ unique_ptr<double[]> DescriptorSearch::computeContent(const Picture &sobelX, con
             const int histogramNum = aroundX/histogramSize*regionSizeX + aroundY/histogramSize;
 
             const double partNum = ((atan2(dy,dx) - aroundAngle) / M_PI + 1)*partsCount/2;
+
             const double partVariation = partNum - (int)partNum;
             int index = histogramNum * partsCount + (int)round(partNum) % partsCount;
             content[index] += w * (1 - partVariation);
@@ -87,7 +107,7 @@ unique_ptr<double[]> DescriptorSearch::computeContent(const Picture &sobelX, con
 
 void DescriptorSearch::descriptorNormalize(Descriptor &descriptor){
     double sum = 0;
-    const int size = regionSizeX * regionSizeY * partsCount;
+    const int size = RegionSizeX * RegionSizeY * PartsCount;
     auto accumulateFunc = [](double accumulator, double element){
        return accumulator + pow(element,2);
     };
@@ -101,7 +121,7 @@ void DescriptorSearch::descriptorNormalize(Descriptor &descriptor){
 
 void DescriptorSearch::tresholdTrim(Descriptor &descriptor){
     const double treshold = 0.2;
-    const int size = regionSizeX * regionSizeY * partsCount;
+    const int size = RegionSizeX * RegionSizeY * PartsCount;
     auto transformFunc = [&](double element){
        return min(element, treshold);
     };
@@ -113,7 +133,7 @@ vector<double> DescriptorSearch::calculateDistance(const DescriptorSearch &f, co
     const int sDescriptorsCount = s.descriptors.size();
     cout<<fDescriptorsCount<<endl;
     cout<<sDescriptorsCount<<endl;
-    const int descriptorSize = regionSizeX * regionSizeY * partsCount;
+    const int descriptorSize = RegionSizeX * RegionSizeY * PartsCount;
     vector<double> distances;
     distances.resize(fDescriptorsCount * sDescriptorsCount);
     for(int i=0;i<fDescriptorsCount;i++){
