@@ -11,6 +11,11 @@
 
 using namespace std;
 
+static double gaussXY(int x, int y) {
+    const double sigma = 2;
+    return exp(-(pow(x,2) + pow(y,2))/(2*pow(sigma,2)))/(2 * M_PI * pow(sigma,2));
+}
+
 void DescriptorSearch::findPeaks(int &firstIndex, int &secondIndex, const unique_ptr<double[]> &content){
     const int descriptorSize = SiftRegionSizeX * SiftRegionSizeY * SiftPartsCount;
     (content[firstIndex] > content[secondIndex] ?
@@ -33,20 +38,11 @@ DescriptorSearch::DescriptorSearch(const Picture &sobelX, const Picture &sobelY,
         int firstIndex = 0, secondIndex = 1;
         auto content = DescriptorSearch::computeContent(sobelX, sobelY, point, border, 0, SiftRegionSizeX,SiftRegionSizeY, SiftPartsCount, SiftHistogramSize);
         DescriptorSearch::findPeaks(firstIndex, secondIndex, content);
-
         (content[firstIndex] * 0.8 < content[secondIndex] ?
             descriptors.emplace_back(move(DescriptorSearch::computeDescriptor(sobelX,sobelY,point, border, content, firstIndex))),
             descriptors.emplace_back(move(DescriptorSearch::computeDescriptor(sobelX,sobelY,point, border, content, secondIndex))) :
             descriptors.emplace_back(move(DescriptorSearch::computeDescriptor(sobelX,sobelY,point, border, content, firstIndex)))
         );
-
-        /*auto descriptor = Descriptor{point.x, point.y};
-        descriptor.content = DescriptorSearch::computeContent(sobelX, sobelY, point, border, 0);
-        DescriptorSearch::descriptorNormalize(descriptor);
-        DescriptorSearch::tresholdTrim(descriptor);
-        DescriptorSearch::descriptorNormalize(descriptor);
-        descriptors.emplace_back(move(descriptor));
-        */
     }
 }
 
@@ -55,10 +51,9 @@ Descriptor DescriptorSearch::computeDescriptor(const Picture &sobelX, const Pict
     const double h0 = content[index] ;
     const double hm = content[(index - 1 + size) % size] ;
     const double hp = content[(index + 1 + size) % size] ;
-     // quadratic interpolation
+     /* quadratic interpolation */
     const double di = - 0.5 * (hp - hm) / (hp + hm - 2 * h0) ;
     const double angle = 2 * M_PI * (index + di + 0.5) / size ;
-    cout<<angle<<endl;
 
     auto descriptor = Descriptor{point.x, point.y};
     descriptor.content = DescriptorSearch::computeContent(sobelX, sobelY, point, border, angle, RegionSizeX, RegionSizeY, PartsCount, HistogramSize);
@@ -73,7 +68,6 @@ unique_ptr<double[]> DescriptorSearch::computeContent(const Picture &sobelX, con
     auto content = make_unique<double []>(descriptorSize);
     const int size = regionSizeX * histogramSize;
     const int halfSize = size/2;
-    auto gauss = PictureFilter::getGaussXY(histogramSize/2);
     const double cosAngle = cos(aroundAngle);
     const double sinAngle = sin(aroundAngle);
     for(int x=-size; x<size; x++){
@@ -89,11 +83,24 @@ unique_ptr<double[]> DescriptorSearch::computeContent(const Picture &sobelX, con
             const int pointY = point.y + y;
             const double dx = sobelX.getIntensity(pointX, pointY, border);
             const double dy = sobelY.getIntensity(pointX, pointY, border);
-            const double w = sqrt(pow(dx,2) + pow(dy,2)) * gauss.getContentCell(x+size, y+size);
+            const double w = sqrt(pow(dx,2) + pow(dy,2)) * gaussXY(x,y);
 
             const int histogramNum = aroundX/histogramSize*regionSizeX + aroundY/histogramSize;
 
-            const double partNum = ((atan2(dy,dx) - aroundAngle) / M_PI + 1)*partsCount/2;
+            double angle = atan2(dy, dx) - aroundAngle;
+            if (angle < 0){
+              angle = angle + M_PI;
+            }
+            if (angle > M_PI){
+              angle = angle - M_PI;
+            }
+            double partNum = (angle / M_PI + 1)*partsCount/2;
+            if(partNum < 0){
+                partNum = 0;
+            }
+            if(partNum > partsCount){
+                partNum = partsCount;
+            }
 
             const double partVariation = partNum - (int)partNum;
             int index = histogramNum * partsCount + (int)round(partNum) % partsCount;
