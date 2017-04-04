@@ -36,12 +36,12 @@ void DescriptorSearch::findPeaks(int &firstIndex, int &secondIndex, const unique
 DescriptorSearch::DescriptorSearch(const Picture &sobelX, const Picture &sobelY, BorderMode border, const vector<InterestPoint> &points){
     for(auto point : points){
         int firstIndex = 0, secondIndex = 1;
-        auto content = DescriptorSearch::computeContent(sobelX, sobelY, point, border, 0, SiftRegionSizeX,SiftRegionSizeY, SiftPartsCount, SiftHistogramSize);
+        auto content = computeContent(sobelX, sobelY, point, border, 0, SiftRegionSizeX,SiftRegionSizeY, SiftPartsCount, SiftHistogramSize);
         DescriptorSearch::findPeaks(firstIndex, secondIndex, content);
         (content[firstIndex] * 0.8 < content[secondIndex] ?
-            descriptors.emplace_back(move(DescriptorSearch::computeDescriptor(sobelX,sobelY,point, border, content, firstIndex))),
-            descriptors.emplace_back(move(DescriptorSearch::computeDescriptor(sobelX,sobelY,point, border, content, secondIndex))) :
-            descriptors.emplace_back(move(DescriptorSearch::computeDescriptor(sobelX,sobelY,point, border, content, firstIndex)))
+            descriptors.emplace_back(computeDescriptor(sobelX,sobelY,point, border, content, firstIndex)),
+            descriptors.emplace_back(computeDescriptor(sobelX,sobelY,point, border, content, secondIndex)) :
+            descriptors.emplace_back(computeDescriptor(sobelX,sobelY,point, border, content, firstIndex))
         );
     }
 }
@@ -56,10 +56,10 @@ Descriptor DescriptorSearch::computeDescriptor(const Picture &sobelX, const Pict
     const double angle = 2 * M_PI * (index + di + 0.5) / size ;
 
     auto descriptor = Descriptor{point.x, point.y};
-    descriptor.content = DescriptorSearch::computeContent(sobelX, sobelY, point, border, angle, RegionSizeX, RegionSizeY, PartsCount, HistogramSize);
-    DescriptorSearch::descriptorNormalize(descriptor);
-    DescriptorSearch::tresholdTrim(descriptor);
-    DescriptorSearch::descriptorNormalize(descriptor);
+    descriptor.content = computeContent(sobelX, sobelY, point, border, angle, RegionSizeX, RegionSizeY, PartsCount, HistogramSize);
+    descriptorNormalize(descriptor);
+    tresholdTrim(descriptor);
+    descriptorNormalize(descriptor);
     return descriptor;
 }
 
@@ -160,7 +160,7 @@ vector<NearestDescriptors> DescriptorSearch::searchOverlap(const DescriptorSearc
     const int fDescriptorsCount = f.descriptors.size();
     const int sDescriptorsCount = s.descriptors.size();
     const double treshhold = 0.2;
-    vector<double> distances = DescriptorSearch::calculateDistance(f,s);
+    vector<double> distances = calculateDistance(f,s);
 
     vector<NearestDescriptors> overlaps;
     overlaps.resize(fDescriptorsCount);
