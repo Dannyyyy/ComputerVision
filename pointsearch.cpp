@@ -2,15 +2,13 @@
 #include <iostream>
 #include <QPainter>
 
-
 void PointSearch::harris(BorderMode border, double treshold){
     const int heightPicture = picture.getHeight();
     const int widthPicture = picture.getWidth();
     auto resultPicture = Picture(heightPicture, widthPicture);
 
-    const double sigma = 1;
+    const double sigma = windowHalfSize/3.;
     auto gauss = PictureFilter::getGaussXY(sigma);
-    const int centerGauss = gauss.getHeight()/2;
 
     auto filterSobelX = PictureFilter::getSobelGX();
     auto sobelX = picture.useFilter(filterSobelX,border);
@@ -18,15 +16,14 @@ void PointSearch::harris(BorderMode border, double treshold){
     auto sobelY = picture.useFilter(filterSobelY,border);
 
     double A,B,C;
-    const double k = 0.06;
     for (int x = 0; x < heightPicture; x++) {
         for (int y = 0; y < widthPicture; y++) {
              A=B=C=0;
-             for(int u=-centerGauss;u<=centerGauss;u++)
+             for(int u=-windowHalfSize;u<=windowHalfSize;u++)
              {
-                 for(int v=-centerGauss;v<=centerGauss;v++)
+                 for(int v=-windowHalfSize;v<=windowHalfSize;v++)
                  {
-                     auto gaussW = gauss.getContentCell(u+centerGauss,v+centerGauss);
+                     auto gaussW = gauss.getContentCell(u+windowHalfSize, v+windowHalfSize);
                      auto Ix = sobelX.getIntensity(x+u,y+v,border);
                      auto Iy = sobelY.getIntensity(x+u,y+v,border);
                      A += gaussW * pow(Ix,2);
@@ -34,8 +31,10 @@ void PointSearch::harris(BorderMode border, double treshold){
                      C += gaussW * pow(Iy,2);
                  }
              }
-             double f = A*C - pow(B,2) - k*pow((A+C),2);
-             resultPicture.setIntensity(x,y,f);
+             const double D = sqrt((A-C)*(A-C) + 4*B*B);
+             const double L1 = abs((A+C+D)/2);
+             const double L2 = abs((A+C-D)/2);
+             resultPicture.setIntensity(x,y,min(L1,L2));
         }
      }
     searchInterestPoints(resultPicture, border, treshold);

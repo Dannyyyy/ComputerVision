@@ -90,7 +90,7 @@ void MainWindow::lab3(){
     interestPointsMoravek->drawAndSaveInterestPoints("C:\\AGTU\\pictures\\moravek.jpg");
 
     auto interestPointsHarris = new PointSearch(picture);
-    interestPointsHarris->harris(BorderMode::ReflectBorderValue, 0.01);
+    interestPointsHarris->harris(BorderMode::ReflectBorderValue, 0.075);
     interestPointsHarris->adaptiveNonMaxSuppression(500);
     interestPointsHarris->drawAndSaveInterestPoints("C:\\AGTU\\pictures\\harris.jpg");
 }
@@ -154,8 +154,8 @@ void MainWindow::lab4(){
 //image load
 void MainWindow::on_pushButton_clicked()
 {
-    lab4();
-    /*
+    //lab4();
+    //
     const QString filePath = QFileDialog::getOpenFileName(0, "Выбор изображения...", "", "*.jpg");
     if(filePath != "")
     {
@@ -176,8 +176,7 @@ void MainWindow::on_pushButton_clicked()
                 picture.setIntensity(i,j,qRed(intensity),qGreen(intensity),qBlue(intensity));
             }
         }
-        //lab3();
-        auto descriptor = new DescriptorSearch(picture, BorderMode::ReflectBorderValue);
+        lab3();
     }
     else
     {
@@ -185,5 +184,5 @@ void MainWindow::on_pushButton_clicked()
         msgBox.setText("Изображение не выбрано.");
         msgBox.exec();
     }
-    */
+    //
 }

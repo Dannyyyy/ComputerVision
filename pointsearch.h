@@ -13,6 +13,8 @@ struct InterestPoint{
 
 class PointSearch{
 private:
+    int windowSize = 7;
+    int windowHalfSize = 3;
     Picture picture;
     vector<InterestPoint> points;
 public:
