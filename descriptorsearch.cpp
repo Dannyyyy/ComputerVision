@@ -87,20 +87,16 @@ unique_ptr<double[]> DescriptorSearch::computeContent(const Picture &sobelX, con
 
             const int histogramNum = aroundX/histogramSize*regionSizeX + aroundY/histogramSize;
 
-            double angle = atan2(dy, dx) - aroundAngle;
-            if (angle < 0){
-              angle = angle + M_PI;
+            double angle = atan2(dy, dx) + M_PI - aroundAngle;
+            if (angle > 2 * M_PI) {
+                angle = angle - 2 * M_PI;
             }
-            if (angle > M_PI){
-              angle = angle - M_PI;
+            if (angle < 0) {
+               angle = angle + 2 * M_PI;
             }
-            double partNum = (angle / M_PI + 1)*partsCount/2;
-            if(partNum < 0){
-                partNum = 0;
-            }
-            if(partNum > partsCount){
-                partNum = partsCount;
-            }
+
+            double partNum = angle / M_PI / 2 * partsCount;
+            partNum = max(0.0, min(partsCount - 0.001, partNum));
 
             const double partVariation = partNum - (int)partNum;
             int index = histogramNum * partsCount + (int)round(partNum) % partsCount;
@@ -201,14 +197,15 @@ void DescriptorSearch::saveOverlaps(QImage &image, QString filePath, const vecto
     QPainter painter(&image);
     for(auto overlap: overlaps){
         painter.setPen(qRgb(255,0,0));
-        painter.drawEllipse(overlap.fX, overlap.fY, 2,2);
-        painter.drawEllipse(overlap.sX + width, overlap.sY, 2,2);
+        painter.drawEllipse(overlap.fY, overlap.fX, 2,2);
+        painter.drawEllipse(overlap.sY + width, overlap.sX, 2,2);
         const int red = abs(rand())%255;
         const int green = abs(rand())%255;
         const int blue = abs(rand())%255;
-        cout<<red<<":"<<green<<":"<<blue<<endl;
+        //cout<<red<<":"<<green<<":"<<blue<<endl;
+        cout<<overlap.fY<<" : "<<overlap.fX<<" : "<<overlap.sY + width<<" : "<<overlap.sX<<endl;
         painter.setPen(QColor(red,green, blue));
-        painter.drawLine(overlap.fX, overlap.fY, overlap.sX + width, overlap.sY);
+        painter.drawLine(overlap.fY, overlap.fX, overlap.sY + width, overlap.sX);
     }
     }
     image.save(filePath + "result.jpg", "jpg");

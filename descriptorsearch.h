@@ -38,7 +38,7 @@ private:
 public:
     DescriptorSearch(const Picture &sobelX, const Picture &sobelY, BorderMode border, const vector<InterestPoint> &points);
     static vector<NearestDescriptors> searchOverlap(const DescriptorSearch &first,const DescriptorSearch &second);
-    static void saveOverlaps(QImage &image, QString filePath, const vector<NearestDescriptors> &overlaps, const int width);    
+    static void saveOverlaps(QImage &image, QString filePath, const vector<NearestDescriptors> &overlaps, const int width);
 };
 
 #endif // DESCRIPTORSEARCH_H

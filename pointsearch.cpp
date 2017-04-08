@@ -113,12 +113,12 @@ void PointSearch::adaptiveNonMaxSuppression(const int needfulCountPoints){
 
     while(points.size()>needfulCountPoints && radius<=maxRadius){
         for (int i = 0; i < points.size(); i++) {
-            intensityI = points[i].intensity;
+            intensityI = coef * points[i].intensity;
             for (int j = i+1; j < points.size(); j++) {
                 distance = Dist(points[i].x,points[j].x,points[i].y,points[j].y);
-                intensityJ = coef * points[j].intensity;
-                if(distance <= radius && intensityI < intensityJ){
-                    points.erase(points.begin()+i); break;
+                intensityJ = points[j].intensity;
+                if(distance <= radius && intensityI > intensityJ){
+                    points.erase(points.begin()+j); j--;
                 }
             }
          }

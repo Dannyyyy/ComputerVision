@@ -96,8 +96,8 @@ void MainWindow::lab3(){
 }
 
 void MainWindow::lab4(){
-    const double treshold = 0.01;
-    const int pointsCount = 200;
+    const double treshold = 0.075;
+    const int pointsCount = 500;
     auto border = BorderMode::ReflectBorderValue;
 
     auto fPicture = loadPicture("C:\\AGTU\\pictures\\first.jpg");
@@ -154,8 +154,8 @@ void MainWindow::lab4(){
 //image load
 void MainWindow::on_pushButton_clicked()
 {
-    //lab4();
-    //
+    lab4();
+    /*
     const QString filePath = QFileDialog::getOpenFileName(0, "Выбор изображения...", "", "*.jpg");
     if(filePath != "")
     {
@@ -184,5 +184,5 @@ void MainWindow::on_pushButton_clicked()
         msgBox.setText("Изображение не выбрано.");
         msgBox.exec();
     }
-    //
+    */
 }
