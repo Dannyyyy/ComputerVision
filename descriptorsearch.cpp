@@ -73,8 +73,8 @@ unique_ptr<double[]> DescriptorSearch::computeContent(const Picture &sobelX, con
     for(int x=-size; x<size; x++){
         for(int y=-size; y<size; y++){
 
-            const int aroundX = (int)(x*cosAngle + y*sinAngle);
-            const int aroundY = (int)(y*cosAngle - x*sinAngle);
+            const int aroundX = (int)(x*cosAngle + y*sinAngle) + halfSize;
+            const int aroundY = (int)(y*cosAngle - x*sinAngle) + halfSize;
             if(aroundX < 0 || aroundX >= size || aroundY < 0 || aroundY >= size){
                 continue;
             }
@@ -152,10 +152,64 @@ vector<double> DescriptorSearch::calculateDistance(const DescriptorSearch &f, co
     return distances;
 }
 
+//
 vector<NearestDescriptors> DescriptorSearch::searchOverlap(const DescriptorSearch &f,const DescriptorSearch &s){
     const int fDescriptorsCount = f.descriptors.size();
     const int sDescriptorsCount = s.descriptors.size();
     const double treshhold = 0.2;
+    vector<double> distances = calculateDistance(f,s);
+    double firstOverlapDistance;
+    double secondOverlapDistance;
+    vector<NearestDescriptors> overlaps;
+    overlaps.resize(fDescriptorsCount);
+    int firstOverlap, secondOverlap;
+
+    for(int i=0;i<fDescriptorsCount;i++){
+        const int index = i*sDescriptorsCount;
+        if (distances[index] < distances[index + 1]){
+            firstOverlap = 0;
+            firstOverlapDistance = distances[index];
+            secondOverlap = 1;
+            secondOverlapDistance = distances[index + 1];
+        }
+        else{
+            firstOverlap = 1;
+            firstOverlapDistance = distances[index+1];
+            secondOverlap = 0;
+            secondOverlapDistance = distances[index];
+        }
+
+        for(int j=2;j<sDescriptorsCount;j++){
+            double distance = distances[index+j];
+            if(distance < distances[index+firstOverlap]){
+                secondOverlap = firstOverlap;
+                secondOverlapDistance = firstOverlapDistance;
+                firstOverlap = j;
+                firstOverlapDistance = distance;
+                continue;
+            }
+            if(distance < distances[index+secondOverlap]){
+                secondOverlap = j;
+                secondOverlapDistance = distance;
+            }
+        }
+        if(firstOverlapDistance/secondOverlapDistance < 0.5)
+         {
+            const int fX = f.descriptors[i].x;
+            const int fY = f.descriptors[i].y;
+            const int sX = s.descriptors[firstOverlap].x;
+            const int sY = s.descriptors[firstOverlap].y;
+            overlaps.emplace_back(NearestDescriptors{fX,fY,sX,sY});
+        }
+    }
+    return overlaps;
+}
+//
+/*
+vector<NearestDescriptors> DescriptorSearch::searchOverlap(const DescriptorSearch &f,const DescriptorSearch &s){
+    const int fDescriptorsCount = f.descriptors.size();
+    const int sDescriptorsCount = s.descriptors.size();
+    const double treshhold = 0.18;
     vector<double> distances = calculateDistance(f,s);
 
     vector<NearestDescriptors> overlaps;
@@ -190,7 +244,7 @@ vector<NearestDescriptors> DescriptorSearch::searchOverlap(const DescriptorSearc
     }
     return overlaps;
 }
-
+*/
 void DescriptorSearch::saveOverlaps(QImage &image, QString filePath, const vector<NearestDescriptors> &overlaps, const int width){
     srand(time(NULL));
     {
