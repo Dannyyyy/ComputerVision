@@ -7,7 +7,8 @@ using namespace std;
 
 struct Level{
     Picture picture;
-    double sigma;
+    double localSigma;
+    double globalSigma;
 };
 
 class GaussianPyramid{
