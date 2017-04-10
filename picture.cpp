@@ -258,5 +258,16 @@ double Picture::getWrapPicture(const int x, const int y) const {
     return getIntensity(resultX, resultY);
 }
 
+Picture Picture::calculationDifference(const Picture &fPicture, const Picture &sPicture){
+    const int height = fPicture.getHeight();
+    const int width = fPicture.getWidth();
+    auto resultPicture = Picture(height,width);
+    const int size = height * width;
+    for(int i=0;i<size;i++){
+        resultPicture.content[i] = fPicture.content[i] - sPicture.content[i];
+    }
+    return resultPicture;
+}
+
 
 

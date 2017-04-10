@@ -64,3 +64,21 @@ int GaussianPyramid::getCountLevelsInOctave() const{
 void GaussianPyramid::savePicture(int octave, int level, QString filePath) const{
     octaves[octave][level].picture.saveImage(filePath);
 }
+
+void GaussianPyramid::calculateDifferences(){
+    countOctaves = octaves.size();
+    differences.resize(countOctaves);
+    for(int i=0; i<countOctaves; i++){
+        const int countLevels = octaves[i].size() - 1;
+        for(int j=0; j<countLevels; j++){
+            auto fLevel = octaves[i][j];
+            auto sLevel = octaves[i][j+1];
+            const double localSigma = fLevel.localSigma;
+            const double globalSigma = fLevel.globalSigma;
+            auto fPicture = fLevel.picture;
+            auto sPicture = sLevel.picture;
+            auto resultPicture = Picture::calculationDifference(fPicture, sPicture);
+            differences[i].emplace_back(Level{resultPicture, localSigma, globalSigma});
+        }
+    }
+}

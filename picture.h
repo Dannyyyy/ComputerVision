@@ -39,5 +39,6 @@ public:
     double getCopyBoarderValue(const int x, const int y) const;
     double getReflectBoarderValue(const int x, const int y) const;
     double getWrapPicture(const int x, const int y) const;
+    static Picture calculationDifference(const Picture &fPicture, const Picture &sPicture);
 };
 #endif // PICTURE_H

@@ -18,11 +18,13 @@ class GaussianPyramid{
     int countLevelsInOctave;
     double k;
     vector<vector<Level>> octaves;
+    vector<vector<Level>> differences;
 public:
     int getCountOctaves() const;
     int getCountLevelsInOctave() const;
     void savePicture(int octave, int level, QString filePath) const;
     GaussianPyramid(const Picture &picture, int numberLevelsInOctave);
+    void calculateDifferences();
 };
 
 #endif // GAUSSIANPYRAMID_H
