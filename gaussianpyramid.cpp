@@ -31,7 +31,7 @@ GaussianPyramid::GaussianPyramid(const Picture &picture, int numberLevelsInOctav
     octaves[0].emplace_back(Level{move(initialPicture), zeroSigma, zeroSigma});
     for(int i = 0; i < countOctaves; i++) {
         auto &octave = octaves[i];
-        for (int j = 0; j <= countLevelsInOctave; j++) {
+        for (int j = 0; j <= countLevelsInOctave + 3; j++) {
             if (j == 0) {
                 if(i !=0 ) {
                     auto &baseLevel = octaves[i-1][countLevelsInOctave];
@@ -81,4 +81,12 @@ void GaussianPyramid::calculateDifferences(){
             differences[i].emplace_back(Level{resultPicture, localSigma, globalSigma});
         }
     }
+}
+
+vector<Level> GaussianPyramid::getDiffOctave(const int octave) const{
+    return differences[octave];
+}
+
+Level GaussianPyramid::getDiffLevel(const int octave, const int level) const{
+    return differences[octave][level];
 }

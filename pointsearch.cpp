@@ -72,6 +72,113 @@ void PointSearch::moravek(BorderMode border, double treshold){
     searchInterestPoints(resultPicture, border, treshold);
 }
 
+Picture PointSearch::harrisValues(const Picture &picture, BorderMode border, int windowHalfSize) {
+    const int heightPicture = picture.getHeight();
+    const int widthPicture = picture.getWidth();
+    auto resultPicture = Picture(heightPicture, widthPicture);
+
+    const double sigma = windowHalfSize/3.;
+    auto gauss = PictureFilter::getGaussXY(sigma);
+
+    auto filterSobelX = PictureFilter::getSobelGX();
+    auto sobelX = picture.useFilter(filterSobelX,border);
+    auto filterSobelY = PictureFilter::getSobelGY();
+    auto sobelY = picture.useFilter(filterSobelY,border);
+
+    double A,B,C;
+    for (int x = 0; x < heightPicture; x++) {
+        for (int y = 0; y < widthPicture; y++) {
+             A=B=C=0;
+             for(int u=-windowHalfSize;u<=windowHalfSize;u++)
+             {
+                 for(int v=-windowHalfSize;v<=windowHalfSize;v++)
+                 {
+                     auto gaussW = gauss.getContentCell(u+windowHalfSize, v+windowHalfSize);
+                     auto Ix = sobelX.getIntensity(x+u,y+v,border);
+                     auto Iy = sobelY.getIntensity(x+u,y+v,border);
+                     A += gaussW * pow(Ix,2);
+                     B += gaussW * Ix * Iy;
+                     C += gaussW * pow(Iy,2);
+                 }
+             }
+             const double D = sqrt((A-C)*(A-C) + 4*B*B);
+             const double L1 = abs((A+C+D)/2);
+             const double L2 = abs((A+C-D)/2);
+             resultPicture.setIntensity(x,y,min(L1,L2));
+        }
+     }
+    return resultPicture;
+}
+
+static bool checkPoint(const double initial, const GaussianPyramid & pyramid, const int x, const int y, const int octave, const int level, BorderMode border){
+    bool min = true;
+    bool max = true;
+    for(int dz = -1; dz<2; dz++) {
+        for(int dx = -1; dx < 2; dx++) {
+            for(int dy = -1; dy<2; dy++) {
+                if (dx != 0 || dy != 0 || dz != 0) {
+                    cout<<"dz: "<<dz<<" dx: "<<dx<<" dy: "<<dy<<endl;
+                    const int levelI = level + dz;
+                    const int xI = x + dx;
+                    const int yI = y + dy;
+                    double selected = pyramid.getDiffLevel(octave, levelI).picture.getIntensity(xI,yI,border);
+                    if(selected <= initial){
+                        min = false;
+                    }
+                    if(selected >= initial){
+                        max = false;
+                    }
+                }
+            }
+        }
+    }
+    if(max  || min){
+        return true;
+    }
+    return false;
+}
+
+void PointSearch::blob(GaussianPyramid &pyramid, BorderMode border, double treshold){
+    points.clear();
+    const int countOctaves = pyramid.getCountOctaves();
+
+    for(int octaveI = 0; octaveI < countOctaves; octaveI++){
+        cout<<"Octave: "<<octaveI<<endl;
+        int countLevels = pyramid.getDiffOctave(octaveI).size();
+        const int height = pyramid.getDiffLevel(octaveI,0).picture.getHeight();
+        const int width = pyramid.getDiffLevel(octaveI,0).picture.getWidth();
+        for(int levelI = 1; levelI < countLevels - 1; levelI++){
+            cout<<"Level: "<<levelI<<endl;
+            auto diffLevel = pyramid.getDiffLevel(octaveI,levelI);
+            auto harris = PointSearch::harrisValues(diffLevel.picture, border, windowHalfSize);
+            for(int x = 0;x<height;x++){
+                for(int y = 0; y< width; y++){
+                    double initial = diffLevel.picture.getIntensity(x,y,border);
+                    const double intensity = harris.getIntensity(x,y,border);
+                    if(intensity > 0.001)
+                    {
+                        if(checkPoint(initial,pyramid,x,y,octaveI,levelI, border)){
+                            cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
+                            InterestPoint point;
+                            point.x = x*pow(2,octaveI);
+                            point.y = y*pow(2,octaveI);
+                            point.localX = x;
+                            point.localY = y;
+                            point.intensity = intensity;
+                            point.octave = octaveI;
+                            point.level = levelI;
+                            point.localSigma = diffLevel.localSigma;
+                            point.globalSigma = diffLevel.globalSigma;
+                            points.emplace_back(point);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+}
+
 void PointSearch::searchInterestPoints(Picture &resultPicture, BorderMode border, double treshold){
     const int heightPicture = picture.getHeight();
     const int widthPicture = picture.getWidth();
@@ -91,7 +198,11 @@ void PointSearch::searchInterestPoints(Picture &resultPicture, BorderMode border
                     }
                 }
                 if(isLocalMaximum) {
-                    points.emplace_back(InterestPoint{x,y,intensity});
+                    InterestPoint point;
+                    point.x = x;
+                    point.y = y;
+                    point.intensity = intensity;
+                    points.emplace_back(point);
                 }
             }
         }
@@ -130,7 +241,17 @@ void PointSearch::adaptiveNonMaxSuppression(const int needfulCountPoints){
 void PointSearch::drawAndSaveInterestPoints(const QString filePath) const{
     auto resultImage = picture.getImage();
     QPainter painter(&resultImage);
-    painter.setPen(qRgb(255,0,0));
+    painter.setPen(qRgb(255,255,0));
+    for(auto point : points) {
+        painter.drawEllipse(point.y,point.x, 2,2);
+    }
+    resultImage.save(filePath,"jpg");
+}
+
+void PointSearch::drawAndSaveInterestPointsBlob(const QString filePath) const{
+    auto resultImage = picture.getImage();
+    QPainter painter(&resultImage);
+    painter.setPen(qRgb(255,255,0));
     for(auto point : points) {
         painter.drawEllipse(point.y,point.x, 2,2);
     }

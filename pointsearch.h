@@ -3,12 +3,16 @@
 #include <picture.h>
 #include <picturefilter.h>
 #include <border.h>
+#include <gaussianpyramid.h>
 
 using namespace std;
 
 struct InterestPoint{
     int x,y;
     double intensity;
+    int octave, level;
+    double localSigma, globalSigma;
+    int localX, localY;
 };
 
 class PointSearch{
@@ -24,7 +28,10 @@ public:
     void searchInterestPoints(Picture &resultPicture, BorderMode border, double treshold);
     void adaptiveNonMaxSuppression(const int needfulCountPoints);
     void drawAndSaveInterestPoints(const QString filePath) const;
+    void drawAndSaveInterestPointsBlob(const QString filePath) const;
     vector<InterestPoint> Points() const;
+    void blob(GaussianPyramid &pyramid, BorderMode border, double treshold);
+    static Picture harrisValues(const Picture &picture, BorderMode border, const int windowHalfSize);
 };
 
 #endif // POINTSEARCH_H

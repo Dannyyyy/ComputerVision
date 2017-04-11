@@ -22,6 +22,7 @@ public:
     void lab2();
     void lab3();
     void lab4();
+    void lab6();
     Picture loadPicture(QString filePath);
     void outputPyramid(const GaussianPyramid &pyramid, QString filePath) const;
     ~MainWindow();

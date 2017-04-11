@@ -25,6 +25,8 @@ public:
     void savePicture(int octave, int level, QString filePath) const;
     GaussianPyramid(const Picture &picture, int numberLevelsInOctave);
     void calculateDifferences();
+    vector<Level> getDiffOctave(const int octave) const;
+    Level getDiffLevel(const int octave, const int level) const;
 };
 
 #endif // GAUSSIANPYRAMID_H

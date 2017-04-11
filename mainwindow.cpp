@@ -150,11 +150,24 @@ void MainWindow::lab4(){
 
 }
 
+void MainWindow::lab6(){
+    const double treshold = 0.075;
+    const int pointsCount = 500;
+    auto border = BorderMode::ReflectBorderValue;
+    auto fPicture = loadPicture("C:\\AGTU\\pictures\\circle.jpg");
+    auto pyramid = new GaussianPyramid(fPicture,5);
+    pyramid->calculateDifferences();
+    auto fInterestPoints = new PointSearch(fPicture);
+    fInterestPoints->blob(*pyramid, border, treshold);
+    fInterestPoints->drawAndSaveInterestPointsBlob("C:\\AGTU\\pictures\\blob.jpg");
+}
+
 
 //image load
 void MainWindow::on_pushButton_clicked()
 {
-    lab4();
+    //lab4();
+    lab6();
     /*
     const QString filePath = QFileDialog::getOpenFileName(0, "Выбор изображения...", "", "*.jpg");
     if(filePath != "")
