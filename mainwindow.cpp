@@ -33,7 +33,7 @@ void MainWindow::outputPyramid(const GaussianPyramid &pyramid, QString filePath)
     int countOctaves = pyramid.getCountOctaves();
     int countLevelsInOctave = pyramid.getCountLevelsInOctave();
     for(int i = 0; i < countOctaves; i++) {
-        for (int j = 0; j <= countLevelsInOctave; j++) {
+        for (int j = 0; j <= countLevelsInOctave+2; j++) {
             QString fileName =  filePath + QString("octave_%1_level_%2").arg(QString::number(i),QString::number(j));
             pyramid.savePicture(i,j,fileName);
         }
@@ -155,8 +155,9 @@ void MainWindow::lab6(){
     const int pointsCount = 500;
     auto border = BorderMode::ReflectBorderValue;
     auto fPicture = loadPicture("C:\\AGTU\\pictures\\circle.jpg");
-    auto pyramid = new GaussianPyramid(fPicture,5);
+    auto pyramid = new GaussianPyramid(fPicture,8);
     pyramid->calculateDifferences();
+    outputPyramid(*pyramid,"C:\\AGTU\\pictures\\");
     auto fInterestPoints = new PointSearch(fPicture);
     fInterestPoints->blob(*pyramid, border, treshold);
     fInterestPoints->drawAndSaveInterestPointsBlob("C:\\AGTU\\pictures\\blob.jpg");

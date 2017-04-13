@@ -62,7 +62,8 @@ int GaussianPyramid::getCountLevelsInOctave() const{
 }
 
 void GaussianPyramid::savePicture(int octave, int level, QString filePath) const{
-    octaves[octave][level].picture.saveImage(filePath);
+    //octaves[octave][level].picture.saveImage(filePath);
+    differences[octave][level].picture.getPictureNormalize().saveImage(filePath);
 }
 
 void GaussianPyramid::calculateDifferences(){

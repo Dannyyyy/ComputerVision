@@ -132,7 +132,7 @@ static bool checkPoint(const double initial, const GaussianPyramid & pyramid, co
             }
         }
     }
-    if(max  || min){
+    if(max || min){
         return true;
     }
     return false;
@@ -145,6 +145,7 @@ void PointSearch::blob(GaussianPyramid &pyramid, BorderMode border, double tresh
     for(int octaveI = 0; octaveI < countOctaves; octaveI++){
         cout<<"Octave: "<<octaveI<<endl;
         int countLevels = pyramid.getDiffOctave(octaveI).size();
+        cout<<"Levels count: "<<countLevels<<endl;
         const int height = pyramid.getDiffLevel(octaveI,0).picture.getHeight();
         const int width = pyramid.getDiffLevel(octaveI,0).picture.getWidth();
         for(int levelI = 1; levelI < countLevels - 1; levelI++){
@@ -160,15 +161,15 @@ void PointSearch::blob(GaussianPyramid &pyramid, BorderMode border, double tresh
                         if(checkPoint(initial,pyramid,x,y,octaveI,levelI, border)){
                             cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
                             InterestPoint point;
-                            point.x = x*pow(2,octaveI);
-                            point.y = y*pow(2,octaveI);
+                            point.x = (x + 0.5)*pow(2,octaveI) - 0.5;
+                            point.y = (y + 0.5)*pow(2,octaveI) - 0.5;
                             point.localX = x;
                             point.localY = y;
                             point.intensity = intensity;
                             point.octave = octaveI;
                             point.level = levelI;
                             point.localSigma = diffLevel.localSigma;
-                            point.globalSigma = diffLevel.globalSigma;
+                            point.globalSigma = diffLevel.localSigma*pow(2, octaveI);
                             points.emplace_back(point);
                         }
                     }
@@ -253,7 +254,10 @@ void PointSearch::drawAndSaveInterestPointsBlob(const QString filePath) const{
     QPainter painter(&resultImage);
     painter.setPen(qRgb(255,255,0));
     for(auto point : points) {
-        painter.drawEllipse(point.y,point.x, 2,2);
+        cout<<"Octave: "<<point.octave<<endl;
+        int radius = (int)round(sqrt(2)*point.globalSigma);
+        cout<<"R: "<<radius<<endl;
+        painter.drawEllipse(point.y-radius,point.x-radius, 2*radius,2*radius);
     }
     resultImage.save(filePath,"jpg");
 }
