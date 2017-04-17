@@ -33,20 +33,20 @@ void DescriptorSearch::findPeaks(int &firstIndex, int &secondIndex, const unique
     }
 }
 
-DescriptorSearch::DescriptorSearch(const Picture &sobelX, const Picture &sobelY, BorderMode border, const vector<InterestPoint> &points){
+DescriptorSearch::DescriptorSearch(const GaussianPyramid &pyramid, const Picture &sobelX, const Picture &sobelY, BorderMode border, const vector<InterestPoint> &points){
     for(auto point : points){
         int firstIndex = 0, secondIndex = 1;
-        auto content = computeContent(sobelX, sobelY, point, border, 0, SiftRegionSizeX,SiftRegionSizeY, SiftPartsCount, SiftHistogramSize);
+        auto content = computeContent(pyramid,sobelX, sobelY, point, border, 0, SiftRegionSizeX,SiftRegionSizeY, SiftPartsCount, SiftHistogramSize*point.localSigma);
         DescriptorSearch::findPeaks(firstIndex, secondIndex, content);
         (content[firstIndex] * 0.8 < content[secondIndex] ?
-            descriptors.emplace_back(computeDescriptor(sobelX,sobelY,point, border, content, firstIndex)),
-            descriptors.emplace_back(computeDescriptor(sobelX,sobelY,point, border, content, secondIndex)) :
-            descriptors.emplace_back(computeDescriptor(sobelX,sobelY,point, border, content, firstIndex))
+            descriptors.emplace_back(computeDescriptor(pyramid,sobelX,sobelY,point, border, content, firstIndex)),
+            descriptors.emplace_back(computeDescriptor(pyramid,sobelX,sobelY,point, border, content, secondIndex)) :
+            descriptors.emplace_back(computeDescriptor(pyramid,sobelX,sobelY,point, border, content, firstIndex))
         );
     }
 }
 
-Descriptor DescriptorSearch::computeDescriptor(const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, const unique_ptr<double[]> &content, const int index){
+Descriptor DescriptorSearch::computeDescriptor(const GaussianPyramid &pyramid, const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, const unique_ptr<double[]> &content, const int index){
     const int size = SiftRegionSizeX * SiftRegionSizeY * SiftPartsCount;
     const double h0 = content[index] ;
     const double hm = content[(index - 1 + size) % size] ;
@@ -56,14 +56,14 @@ Descriptor DescriptorSearch::computeDescriptor(const Picture &sobelX, const Pict
     const double angle = 2 * M_PI * (index + di + 0.5) / size ;
 
     auto descriptor = Descriptor{point.x, point.y};
-    descriptor.content = computeContent(sobelX, sobelY, point, border, angle, RegionSizeX, RegionSizeY, PartsCount, HistogramSize);
+    descriptor.content = computeContent(pyramid, sobelX, sobelY, point, border, angle, RegionSizeX, RegionSizeY, PartsCount, HistogramSize*point.localSigma);
     descriptorNormalize(descriptor);
     tresholdTrim(descriptor);
     descriptorNormalize(descriptor);
     return descriptor;
 }
 
-unique_ptr<double[]> DescriptorSearch::computeContent(const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, double aroundAngle, const int regionSizeX, const int regionSizeY, const int partsCount, const int histogramSize){
+unique_ptr<double[]> DescriptorSearch::computeContent(const GaussianPyramid &pyramid, const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, double aroundAngle, const int regionSizeX, const int regionSizeY, const int partsCount, const int histogramSize){
     const int descriptorSize = regionSizeX * regionSizeY * partsCount;
     auto content = make_unique<double []>(descriptorSize);
     const int size = regionSizeX * histogramSize;
@@ -73,16 +73,18 @@ unique_ptr<double[]> DescriptorSearch::computeContent(const Picture &sobelX, con
     for(int x=-size; x<size; x++){
         for(int y=-size; y<size; y++){
 
-            const int aroundX = (int)(x*cosAngle + y*sinAngle) + halfSize;
-            const int aroundY = (int)(y*cosAngle - x*sinAngle) + halfSize;
+            const int aroundX = (int)(x*cosAngle + y*sinAngle + size) / 2;
+            const int aroundY = (int)(y*cosAngle - x*sinAngle + size) / 2;
             if(aroundX < 0 || aroundX >= size || aroundY < 0 || aroundY >= size){
                 continue;
             }
-
-            const int pointX = point.x + x;
-            const int pointY = point.y + y;
-            const double dx = sobelX.getIntensity(pointX, pointY, border);
-            const double dy = sobelY.getIntensity(pointX, pointY, border);
+            auto level = pyramid.getLevel(point.octave, point.level);
+            const int pointX = point.localX + x;
+            const int pointY = point.localY + y;
+            //const double dx = sobelX.getIntensity(pointX, pointY, border);
+            //const double dy = sobelY.getIntensity(pointX, pointY, border);
+            const double dx = level.picture.useFilterPoint(pointX, pointY, PictureFilter::getSobelGX(), border);
+            const double dy = level.picture.useFilterPoint(pointX, pointY, PictureFilter::getSobelGY(), border);
             const double w = sqrt(pow(dx,2) + pow(dy,2)) * gaussXY(x,y);
 
             const int histogramNum = aroundX/histogramSize*regionSizeX + aroundY/histogramSize;

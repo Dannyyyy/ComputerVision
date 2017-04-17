@@ -110,22 +110,50 @@ Picture PointSearch::harrisValues(const Picture &picture, BorderMode border, int
     return resultPicture;
 }
 
+double harrisValue(const Picture &picture, BorderMode border, const int windowHalfSize, const int x, const int y){
+    const double sigma = windowHalfSize/3.;
+    auto gauss = PictureFilter::getGaussXY(sigma);
+
+    auto filterSobelX = PictureFilter::getSobelGX();
+    //auto sobelX = picture.useFilter(filterSobelX,border);
+    auto filterSobelY = PictureFilter::getSobelGY();
+    //auto sobelY = picture.useFilter(filterSobelY,border);
+
+    double A=0,B=0,C=0;
+     for(int u=-windowHalfSize;u<=windowHalfSize;u++)
+     {
+         for(int v=-windowHalfSize;v<=windowHalfSize;v++)
+         {
+             auto gaussW = gauss.getContentCell(u+windowHalfSize, v+windowHalfSize);
+             auto Ix = picture.useFilterPoint(x+u,y+v,filterSobelX,border);//sobelX.getIntensity(x+u,y+v,border);
+             auto Iy = picture.useFilterPoint(x+u,y+v,filterSobelY,border);// sobelY.getIntensity(x+u,y+v,border);
+             A += gaussW * pow(Ix,2);
+             B += gaussW * Ix * Iy;
+             C += gaussW * pow(Iy,2);
+         }
+     }
+     const double D = sqrt((A-C)*(A-C) + 4*B*B);
+     const double L1 = abs((A+C+D)/2);
+     const double L2 = abs((A+C-D)/2);
+     return min(L1,L2);
+}
+
 static bool checkPoint(const double initial, const GaussianPyramid & pyramid, const int x, const int y, const int octave, const int level, BorderMode border){
     bool min = true;
     bool max = true;
-    for(int dz = -1; dz<2; dz++) {
-        for(int dx = -1; dx < 2; dx++) {
-            for(int dy = -1; dy<2; dy++) {
+    for(int dz = -1; dz<=1; dz++) {
+        for(int dx = -1; dx <=1; dx++) {
+            for(int dy = -1; dy<=1; dy++) {
                 if (dx != 0 || dy != 0 || dz != 0) {
-                    cout<<"dz: "<<dz<<" dx: "<<dx<<" dy: "<<dy<<endl;
+                    //cout<<"dz: "<<dz<<" dx: "<<dx<<" dy: "<<dy<<endl;
                     const int levelI = level + dz;
                     const int xI = x + dx;
                     const int yI = y + dy;
                     double selected = pyramid.getDiffLevel(octave, levelI).picture.getIntensity(xI,yI,border);
-                    if(selected <= initial){
+                    if(selected < initial){
                         min = false;
                     }
-                    if(selected >= initial){
+                    if(selected > initial){
                         max = false;
                     }
                 }
@@ -151,11 +179,11 @@ void PointSearch::blob(GaussianPyramid &pyramid, BorderMode border, double tresh
         for(int levelI = 1; levelI < countLevels - 1; levelI++){
             cout<<"Level: "<<levelI<<endl;
             auto diffLevel = pyramid.getDiffLevel(octaveI,levelI);
-            auto harris = PointSearch::harrisValues(diffLevel.picture, border, windowHalfSize);
+            //auto harris = PointSearch::harrisValues(diffLevel.picture, border, windowHalfSize);
             for(int x = 0;x<height;x++){
                 for(int y = 0; y< width; y++){
                     double initial = diffLevel.picture.getIntensity(x,y,border);
-                    const double intensity = harris.getIntensity(x,y,border);
+                    const double intensity = harrisValue(diffLevel.picture,border,windowHalfSize,x,y);//harris.getIntensity(x,y,border);
                     if(intensity > 0.001)
                     {
                         if(checkPoint(initial,pyramid,x,y,octaveI,levelI, border)){

@@ -27,6 +27,8 @@ public:
     void calculateDifferences();
     vector<Level> getDiffOctave(const int octave) const;
     Level getDiffLevel(const int octave, const int level) const;
+    vector<Level> getOctave(const int octave) const;
+    Level getLevel(const int octave, const int level) const;
 };
 
 #endif // GAUSSIANPYRAMID_H

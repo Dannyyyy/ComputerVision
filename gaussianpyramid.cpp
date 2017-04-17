@@ -64,6 +64,7 @@ int GaussianPyramid::getCountLevelsInOctave() const{
 void GaussianPyramid::savePicture(int octave, int level, QString filePath) const{
     //octaves[octave][level].picture.saveImage(filePath);
     differences[octave][level].picture.getPictureNormalize().saveImage(filePath);
+    cout<<"L: "<<differences[octave][level].localSigma<<" G: "<<differences[octave][level].globalSigma<<endl;
 }
 
 void GaussianPyramid::calculateDifferences(){
@@ -91,3 +92,12 @@ vector<Level> GaussianPyramid::getDiffOctave(const int octave) const{
 Level GaussianPyramid::getDiffLevel(const int octave, const int level) const{
     return differences[octave][level];
 }
+//
+vector<Level> GaussianPyramid::getOctave(const int octave) const{
+    return octaves[octave];
+}
+
+Level GaussianPyramid::getLevel(const int octave, const int level) const{
+    return octaves[octave][level];
+}
+//

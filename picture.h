@@ -31,6 +31,7 @@ public:
     void saveImage(QString filePath) const;
     Picture useFilter(const PictureFilterContent &pictureFilterContent, BorderMode border) const;
     Picture useFilter(const PictureFilterContent &fFilter, const PictureFilterContent &sFilter, BorderMode border) const;
+    double useFilterPoint(const int x, const int y, const PictureFilterContent &pictureFilterContent, BorderMode border) const;
     Picture scalePicture() const;
     static Picture calculationGradient(const Picture &sobelX, const Picture &sobelY);
     void pictureNormalize();

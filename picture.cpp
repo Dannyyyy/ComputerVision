@@ -100,6 +100,26 @@ Picture Picture::useFilter(const PictureFilterContent &pictureFilterContent, Bor
         return resultPicture;
 }
 
+double Picture::useFilterPoint(const int x, const int y, const PictureFilterContent &pictureFilterContent, BorderMode border) const{
+    const int widthFilter = pictureFilterContent.getWidth();
+    const int heightFilter = pictureFilterContent.getHeight();
+
+    const int centerWidthFilter = widthFilter / 2;
+    const int centerHeightFilter = heightFilter / 2;
+
+    double resultIntensity = 0;
+
+    for (int dX = 0; dX < heightFilter; dX++) {
+        for (int dY = 0; dY < widthFilter; dY++) {
+            auto X = x - dX + centerHeightFilter;
+            auto Y = y - dY + centerWidthFilter;
+            resultIntensity += getIntensity(X, Y, border) * pictureFilterContent.getContentCell(dX,dY);
+        }
+    }
+
+    return resultIntensity;
+}
+
 Picture Picture::useFilter(const PictureFilterContent &fFilter, const PictureFilterContent &sFilter, BorderMode border) const{
     auto resultPicture = useFilter(fFilter, border);
     resultPicture = resultPicture.useFilter(sFilter, border);

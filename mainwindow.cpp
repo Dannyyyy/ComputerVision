@@ -101,13 +101,22 @@ void MainWindow::lab4(){
     auto border = BorderMode::ReflectBorderValue;
 
     auto fPicture = loadPicture("C:\\AGTU\\pictures\\first.jpg");
+    auto fPyramid = new GaussianPyramid(fPicture,8);
+    fPyramid->calculateDifferences();
     auto fInterestPoints = new PointSearch(fPicture);
-    fInterestPoints->harris(border, treshold);
+    //fInterestPoints->harris(border, treshold);
+    fInterestPoints->blob(*fPyramid, border, treshold);
+    //
     fInterestPoints->adaptiveNonMaxSuppression(pointsCount);
 
     auto sPicture = loadPicture("C:\\AGTU\\pictures\\second.jpg");
+    //
+    auto sPyramid = new GaussianPyramid(sPicture,8);
+    sPyramid->calculateDifferences();
     auto sInterestPoints = new PointSearch(sPicture);
-    sInterestPoints->harris(border, treshold);
+    //sInterestPoints->harris(border, treshold);
+    sInterestPoints->blob(*sPyramid, border, treshold);
+    //
     sInterestPoints->adaptiveNonMaxSuppression(pointsCount);
 
     auto sobelGX = PictureFilter::getSobelGX();
@@ -121,8 +130,8 @@ void MainWindow::lab4(){
     auto fPoints = fInterestPoints->Points();
     auto sPoints = sInterestPoints->Points();
 
-    auto fDescriptors = new DescriptorSearch(fSobelX, fSobelY, border, fPoints);
-    auto sDescriptors = new DescriptorSearch(sSobelX, sSobelY, border, sPoints);
+    auto fDescriptors = new DescriptorSearch(*fPyramid, fSobelX, fSobelY, border, fPoints);
+    auto sDescriptors = new DescriptorSearch(*sPyramid, sSobelX, sSobelY, border, sPoints);
 
     vector<NearestDescriptors> overlaps = DescriptorSearch::searchOverlap(*fDescriptors, *sDescriptors);
 
@@ -167,8 +176,8 @@ void MainWindow::lab6(){
 //image load
 void MainWindow::on_pushButton_clicked()
 {
-    //lab4();
-    lab6();
+    lab4();
+    //lab6();
     /*
     const QString filePath = QFileDialog::getOpenFileName(0, "Выбор изображения...", "", "*.jpg");
     if(filePath != "")
