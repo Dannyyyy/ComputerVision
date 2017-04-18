@@ -31,7 +31,7 @@ private:
     vector<Descriptor> descriptors;
     static void descriptorNormalize(Descriptor &descriptor);
     static void tresholdTrim(Descriptor &descriptor);
-    static unique_ptr<double[]> computeContent(const GaussianPyramid &pyramid, const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, double aroundAngle, const int regionSizeX, const int regionSizeY, const int partsCount, const int histogramSize);
+    static unique_ptr<double[]> computeContent(const GaussianPyramid &pyramid, const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, double aroundAngle, const int regionSizeX, const int regionSizeY, const int partsCount, const int histogramSize, double sigma);
     static vector<double> calculateDistance(const DescriptorSearch &f, const DescriptorSearch &s);
     static void findPeaks(int &firstIndex, int &secondIndex, const unique_ptr<double []> &content);
     static Descriptor computeDescriptor(const GaussianPyramid &pyramid, const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, const unique_ptr<double []> &content, const int index);

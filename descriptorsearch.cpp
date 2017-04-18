@@ -11,8 +11,8 @@
 
 using namespace std;
 
-static double gaussXY(int x, int y) {
-    const double sigma = 2;
+static double gaussXY(int x, int y, double sigma) {
+    //const double sigma = 2;
     return exp(-(pow(x,2) + pow(y,2))/(2*pow(sigma,2)))/(2 * M_PI * pow(sigma,2));
 }
 
@@ -35,9 +35,12 @@ void DescriptorSearch::findPeaks(int &firstIndex, int &secondIndex, const unique
 
 DescriptorSearch::DescriptorSearch(const GaussianPyramid &pyramid, const Picture &sobelX, const Picture &sobelY, BorderMode border, const vector<InterestPoint> &points){
     for(auto point : points){
+        double sigma = 2;
+        double scale = point.localSigma/1.6;
         int firstIndex = 0, secondIndex = 1;
-        auto content = computeContent(pyramid,sobelX, sobelY, point, border, 0, SiftRegionSizeX,SiftRegionSizeY, SiftPartsCount, SiftHistogramSize*point.localSigma);
+        auto content = computeContent(pyramid,sobelX, sobelY, point, border, 0, SiftRegionSizeX,SiftRegionSizeY, SiftPartsCount, SiftHistogramSize*scale, sigma*scale);
         DescriptorSearch::findPeaks(firstIndex, secondIndex, content);
+
         (content[firstIndex] * 0.8 < content[secondIndex] ?
             descriptors.emplace_back(computeDescriptor(pyramid,sobelX,sobelY,point, border, content, firstIndex)),
             descriptors.emplace_back(computeDescriptor(pyramid,sobelX,sobelY,point, border, content, secondIndex)) :
@@ -54,16 +57,17 @@ Descriptor DescriptorSearch::computeDescriptor(const GaussianPyramid &pyramid, c
      /* quadratic interpolation */
     const double di = - 0.5 * (hp - hm) / (hp + hm - 2 * h0) ;
     const double angle = 2 * M_PI * (index + di + 0.5) / size ;
-
+    double sigma = 2;
+    double scale = point.localSigma/1.6;
     auto descriptor = Descriptor{point.x, point.y};
-    descriptor.content = computeContent(pyramid, sobelX, sobelY, point, border, angle, RegionSizeX, RegionSizeY, PartsCount, HistogramSize*point.localSigma);
+    descriptor.content = computeContent(pyramid, sobelX, sobelY, point, border, angle, RegionSizeX, RegionSizeY, PartsCount, HistogramSize*scale, sigma*scale);
     descriptorNormalize(descriptor);
     tresholdTrim(descriptor);
     descriptorNormalize(descriptor);
     return descriptor;
 }
 
-unique_ptr<double[]> DescriptorSearch::computeContent(const GaussianPyramid &pyramid, const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, double aroundAngle, const int regionSizeX, const int regionSizeY, const int partsCount, const int histogramSize){
+unique_ptr<double[]> DescriptorSearch::computeContent(const GaussianPyramid &pyramid, const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, double aroundAngle, const int regionSizeX, const int regionSizeY, const int partsCount, const int histogramSize, double sigma){
     const int descriptorSize = regionSizeX * regionSizeY * partsCount;
     auto content = make_unique<double []>(descriptorSize);
     const int size = regionSizeX * histogramSize;
@@ -85,7 +89,7 @@ unique_ptr<double[]> DescriptorSearch::computeContent(const GaussianPyramid &pyr
             //const double dy = sobelY.getIntensity(pointX, pointY, border);
             const double dx = level.picture.useFilterPoint(pointX, pointY, PictureFilter::getSobelGX(), border);
             const double dy = level.picture.useFilterPoint(pointX, pointY, PictureFilter::getSobelGY(), border);
-            const double w = sqrt(pow(dx,2) + pow(dy,2)) * gaussXY(x,y);
+            const double w = sqrt(pow(dx,2) + pow(dy,2)) * gaussXY(x,y, sigma);
 
             const int histogramNum = aroundX/histogramSize*regionSizeX + aroundY/histogramSize;
 
@@ -195,7 +199,7 @@ vector<NearestDescriptors> DescriptorSearch::searchOverlap(const DescriptorSearc
                 secondOverlapDistance = distance;
             }
         }
-        if(firstOverlapDistance/secondOverlapDistance < 0.65)
+        if(firstOverlapDistance/secondOverlapDistance < 0.7)
          {
             const int fX = f.descriptors[i].x;
             const int fY = f.descriptors[i].y;
