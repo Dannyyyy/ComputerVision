@@ -184,22 +184,26 @@ void PointSearch::blob(GaussianPyramid &pyramid, BorderMode border, double tresh
             for(int x = 0;x<height;x++){
                 for(int y = 0; y< width; y++){
                     double initial = diffLevel.picture.getIntensity(x,y,border);
-                    const double intensity = harrisValue(diffLevel.picture,border,(int)(3*scale),x,y, scale);//harris.getIntensity(x,y,border);
-                    if(intensity > 0.001)
+
+                    if(initial > 0.006)
                     {
-                        if(checkPoint(initial,pyramid,x,y,octaveI,levelI, border)){
-                            cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
-                            InterestPoint point;
-                            point.x = (x + 0.5)*pow(2,octaveI) - 0.5;
-                            point.y = (y + 0.5)*pow(2,octaveI) - 0.5;
-                            point.localX = x;
-                            point.localY = y;
-                            point.intensity = intensity;
-                            point.octave = octaveI;
-                            point.level = levelI;
-                            point.localSigma = diffLevel.localSigma;
-                            point.globalSigma = diffLevel.localSigma*pow(2, octaveI);
-                            points.emplace_back(point);
+                        if(checkPoint(initial,pyramid,x,y,octaveI,levelI, border))
+                        {
+                            const double intensity = harrisValue(diffLevel.picture,border,(int)(3*scale),x,y, scale);//harris.getIntensity(x,y,border);
+                            if(intensity > 0.001){
+                                cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
+                                InterestPoint point;
+                                point.x = (x + 0.5)*pow(2,octaveI) - 0.5;
+                                point.y = (y + 0.5)*pow(2,octaveI) - 0.5;
+                                point.localX = x;
+                                point.localY = y;
+                                point.intensity = intensity;
+                                point.octave = octaveI;
+                                point.level = levelI;
+                                point.localSigma = diffLevel.localSigma;
+                                point.globalSigma = diffLevel.localSigma*pow(2, octaveI);
+                                points.emplace_back(point);
+                            }
                         }
                     }
                 }

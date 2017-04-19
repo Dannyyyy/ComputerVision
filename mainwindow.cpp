@@ -177,8 +177,8 @@ void MainWindow::lab6(){
 //image load
 void MainWindow::on_pushButton_clicked()
 {
-    lab4();
-    //lab6();
+    //lab4();
+    lab6();
     /*
     const QString filePath = QFileDialog::getOpenFileName(0, "Выбор изображения...", "", "*.jpg");
     if(filePath != "")
