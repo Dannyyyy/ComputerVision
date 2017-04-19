@@ -110,8 +110,8 @@ Picture PointSearch::harrisValues(const Picture &picture, BorderMode border, int
     return resultPicture;
 }
 
-double harrisValue(const Picture &picture, BorderMode border, const int windowHalfSize, const int x, const int y){
-    const double sigma = windowHalfSize/3.;
+double harrisValue(const Picture &picture, BorderMode border, const int windowHalfSize, const int x, const int y, double sigma){
+    //const double sigma = windowHalfSize/3.;
     auto gauss = PictureFilter::getGaussXY(sigma);
 
     auto filterSobelX = PictureFilter::getSobelGX();
@@ -180,10 +180,11 @@ void PointSearch::blob(GaussianPyramid &pyramid, BorderMode border, double tresh
             cout<<"Level: "<<levelI<<endl;
             auto diffLevel = pyramid.getDiffLevel(octaveI,levelI);
             //auto harris = PointSearch::harrisValues(diffLevel.picture, border, windowHalfSize);
+            double scale = diffLevel.localSigma/1.6;
             for(int x = 0;x<height;x++){
                 for(int y = 0; y< width; y++){
                     double initial = diffLevel.picture.getIntensity(x,y,border);
-                    const double intensity = harrisValue(diffLevel.picture,border,windowHalfSize,x,y);//harris.getIntensity(x,y,border);
+                    const double intensity = harrisValue(diffLevel.picture,border,(int)(3*scale),x,y, scale);//harris.getIntensity(x,y,border);
                     if(intensity > 0.001)
                     {
                         if(checkPoint(initial,pyramid,x,y,octaveI,levelI, border)){

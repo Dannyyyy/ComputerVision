@@ -108,7 +108,7 @@ void MainWindow::lab4(){
     fInterestPoints->blob(*fPyramid, border, treshold);
     //
     fInterestPoints->adaptiveNonMaxSuppression(pointsCount);
-
+    cout<<"fInterestPoint - complete"<<endl;
     auto sPicture = loadPicture("C:\\AGTU\\pictures\\second.jpg");
     //
     auto sPyramid = new GaussianPyramid(sPicture,8);
@@ -118,7 +118,7 @@ void MainWindow::lab4(){
     sInterestPoints->blob(*sPyramid, border, treshold);
     //
     sInterestPoints->adaptiveNonMaxSuppression(pointsCount);
-
+    cout<<"sInterestPoint - complete"<<endl;
     auto sobelGX = PictureFilter::getSobelGX();
     auto sobelGY = PictureFilter::getSobelGY();
 
@@ -131,10 +131,11 @@ void MainWindow::lab4(){
     auto sPoints = sInterestPoints->Points();
 
     auto fDescriptors = new DescriptorSearch(*fPyramid, fSobelX, fSobelY, border, fPoints);
+    cout<<"fDescriptors - complete"<<endl;
     auto sDescriptors = new DescriptorSearch(*sPyramid, sSobelX, sSobelY, border, sPoints);
-
+    cout<<"sDescriptors - complete"<<endl;
     vector<NearestDescriptors> overlaps = DescriptorSearch::searchOverlap(*fDescriptors, *sDescriptors);
-
+    cout<<"search overlaps - complete"<<endl;
     const int fHeight = fPicture.getHeight();
     const int fWidth = fPicture.getWidth();
     const int sHeight = sPicture.getHeight();
