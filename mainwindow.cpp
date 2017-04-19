@@ -105,7 +105,7 @@ void MainWindow::lab4(){
     fPyramid->calculateDifferences();
     auto fInterestPoints = new PointSearch(fPicture);
     //fInterestPoints->harris(border, treshold);
-    fInterestPoints->blob(*fPyramid, border, treshold);
+    fInterestPoints->blob(*fPyramid, border);
     //
     fInterestPoints->adaptiveNonMaxSuppression(pointsCount);
     cout<<"fInterestPoint - complete"<<endl;
@@ -115,7 +115,7 @@ void MainWindow::lab4(){
     sPyramid->calculateDifferences();
     auto sInterestPoints = new PointSearch(sPicture);
     //sInterestPoints->harris(border, treshold);
-    sInterestPoints->blob(*sPyramid, border, treshold);
+    sInterestPoints->blob(*sPyramid, border);
     //
     sInterestPoints->adaptiveNonMaxSuppression(pointsCount);
     cout<<"sInterestPoint - complete"<<endl;
@@ -169,7 +169,7 @@ void MainWindow::lab6(){
     pyramid->calculateDifferences();
     outputPyramid(*pyramid,"C:\\AGTU\\pictures\\");
     auto fInterestPoints = new PointSearch(fPicture);
-    fInterestPoints->blob(*pyramid, border, treshold);
+    fInterestPoints->blob(*pyramid, border);
     fInterestPoints->drawAndSaveInterestPointsBlob("C:\\AGTU\\pictures\\blob.jpg");
 }
 

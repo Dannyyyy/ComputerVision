@@ -30,7 +30,7 @@ public:
     void drawAndSaveInterestPoints(const QString filePath) const;
     void drawAndSaveInterestPointsBlob(const QString filePath) const;
     vector<InterestPoint> Points() const;
-    void blob(GaussianPyramid &pyramid, BorderMode border, double treshold);
+    void blob(GaussianPyramid &pyramid, BorderMode border);
     static Picture harrisValues(const Picture &picture, BorderMode border, const int windowHalfSize);
 };
 

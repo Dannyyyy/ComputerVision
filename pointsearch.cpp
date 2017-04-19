@@ -166,7 +166,7 @@ static bool checkPoint(const double initial, const GaussianPyramid & pyramid, co
     return false;
 }
 
-void PointSearch::blob(GaussianPyramid &pyramid, BorderMode border, double treshold){
+void PointSearch::blob(GaussianPyramid &pyramid, BorderMode border){
     points.clear();
     const int countOctaves = pyramid.getCountOctaves();
 
