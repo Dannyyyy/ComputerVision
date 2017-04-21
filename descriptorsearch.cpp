@@ -85,8 +85,7 @@ unique_ptr<double[]> DescriptorSearch::computeContent(const GaussianPyramid &pyr
             auto level = pyramid.getLevel(point.octave, point.level);
             const int pointX = point.localX + x;
             const int pointY = point.localY + y;
-            //const double dx = sobelX.getIntensity(pointX, pointY, border);
-            //const double dy = sobelY.getIntensity(pointX, pointY, border);
+
             const double dx = level.picture.useFilterPoint(pointX, pointY, PictureFilter::getSobelGX(), border);
             const double dy = level.picture.useFilterPoint(pointX, pointY, PictureFilter::getSobelGY(), border);
             const double w = sqrt(pow(dx,2) + pow(dy,2)) * gaussXY(x,y, sigma);
@@ -129,12 +128,12 @@ unique_ptr<double[]> DescriptorSearch::computeContent(const GaussianPyramid &pyr
                 }
 
                 for(int offsetX = 0; offsetX<=1 ;offsetX++){ // смещение
-                    const int newX = currentX + offsetX;
+                    const int newX = currentX + offsetX*courseX;
                     if(newX > 0 && newX < regionSizeX){ // проверка на границы
                         const double centerX = (newX+0.5)*histogramSize - halfSize; // искомый центр по X
                         const double wX = 1 - abs(aroundX-centerX)/histogramSize; // весовой коэффициент
                         for(int offsetY = 0; offsetY <= 1; offsetY++){ // смещение
-                            const int newY = currentY + offsetY;
+                            const int newY = currentY + offsetY*courseY;
                             if(newY > 0 || newY < regionSizeY){ // проверка на границы
                                 const double centerY = (newY+0.5)*histogramSize - halfSize; // искомый центр по Y
                                 const double wY = 1 - abs(aroundY-centerY)/histogramSize; // весовой коэффициент
@@ -199,7 +198,6 @@ vector<double> DescriptorSearch::calculateDistance(const DescriptorSearch &f, co
     return distances;
 }
 
-//
 vector<NearestDescriptors> DescriptorSearch::searchOverlap(const DescriptorSearch &f,const DescriptorSearch &s){
     const int fDescriptorsCount = f.descriptors.size();
     const int sDescriptorsCount = s.descriptors.size();
@@ -251,47 +249,7 @@ vector<NearestDescriptors> DescriptorSearch::searchOverlap(const DescriptorSearc
     }
     return overlaps;
 }
-//
-/*
-vector<NearestDescriptors> DescriptorSearch::searchOverlap(const DescriptorSearch &f,const DescriptorSearch &s){
-    const int fDescriptorsCount = f.descriptors.size();
-    const int sDescriptorsCount = s.descriptors.size();
-    const double treshhold = 0.18;
-    vector<double> distances = calculateDistance(f,s);
 
-    vector<NearestDescriptors> overlaps;
-    overlaps.resize(fDescriptorsCount);
-    int firstOverlap, secondOverlap;
-    for(int i=0;i<fDescriptorsCount;i++){
-        const int index = i*sDescriptorsCount;
-        (distances[index] < distances[index + 1] ?
-            firstOverlap = 0, secondOverlap = 1 :
-            firstOverlap = 1, secondOverlap = 0
-        );
-        for(int j=2;j<sDescriptorsCount;j++){
-            double distance = distances[index+j];
-            double firstOverlapDistance = distances[index+firstOverlap];
-            double secondOverlapDistance = distances[index+secondOverlap];
-            (distance < secondOverlapDistance ?
-                (distance < firstOverlapDistance ?
-                    secondOverlap = firstOverlap, firstOverlap = j :
-                    secondOverlap = j) :
-                    (firstOverlap = firstOverlap, secondOverlap = secondOverlap)
-            );
-        }
-        double firstOverlapDistance = distances[index+firstOverlap];
-        double secondOverlapDistance = distances[index+secondOverlap];
-        if(abs(firstOverlapDistance - secondOverlapDistance) > treshhold){
-            const int fX = f.descriptors[i].x;
-            const int fY = f.descriptors[i].y;
-            const int sX = s.descriptors[firstOverlap].x;
-            const int sY = s.descriptors[firstOverlap].y;
-            overlaps.emplace_back(NearestDescriptors{fX,fY,sX,sY});
-        }
-    }
-    return overlaps;
-}
-*/
 void DescriptorSearch::saveOverlaps(QImage &image, QString filePath, const vector<NearestDescriptors> &overlaps, const int width){
     srand(time(NULL));
     {
