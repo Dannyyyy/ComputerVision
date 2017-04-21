@@ -38,7 +38,7 @@ DescriptorSearch::DescriptorSearch(const GaussianPyramid &pyramid, const Picture
         double sigma = 2;
         double scale = point.localSigma/1.6;
         int firstIndex = 0, secondIndex = 1;
-        auto content = computeContent(pyramid,sobelX, sobelY, point, border, 0, SiftRegionSizeX,SiftRegionSizeY, SiftPartsCount, SiftHistogramSize*scale, sigma*scale);
+        auto content = computeContent(pyramid,sobelX, sobelY, point, border, 0, SiftRegionSizeX,SiftRegionSizeY, SiftPartsCount, SiftHistogramSize*scale, sigma*scale, false);
         DescriptorSearch::findPeaks(firstIndex, secondIndex, content);
 
         (content[firstIndex] * 0.8 < content[secondIndex] ?
@@ -60,14 +60,14 @@ Descriptor DescriptorSearch::computeDescriptor(const GaussianPyramid &pyramid, c
     double sigma = 2;
     double scale = point.localSigma/1.6;
     auto descriptor = Descriptor{point.x, point.y};
-    descriptor.content = computeContent(pyramid, sobelX, sobelY, point, border, angle, RegionSizeX, RegionSizeY, PartsCount, HistogramSize*scale, sigma*scale);
+    descriptor.content = computeContent(pyramid, sobelX, sobelY, point, border, angle, RegionSizeX, RegionSizeY, PartsCount, HistogramSize*scale, sigma*scale, true);
     descriptorNormalize(descriptor);
     tresholdTrim(descriptor);
     descriptorNormalize(descriptor);
     return descriptor;
 }
 
-unique_ptr<double[]> DescriptorSearch::computeContent(const GaussianPyramid &pyramid, const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, double aroundAngle, const int regionSizeX, const int regionSizeY, const int partsCount, const int histogramSize, double sigma){
+unique_ptr<double[]> DescriptorSearch::computeContent(const GaussianPyramid &pyramid, const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, double aroundAngle, const int regionSizeX, const int regionSizeY, const int partsCount, const int histogramSize, double sigma, bool distribution){
     const int descriptorSize = regionSizeX * regionSizeY * partsCount;
     auto content = make_unique<double []>(descriptorSize);
     const int size = regionSizeX * histogramSize;
@@ -90,9 +90,10 @@ unique_ptr<double[]> DescriptorSearch::computeContent(const GaussianPyramid &pyr
             const double dx = level.picture.useFilterPoint(pointX, pointY, PictureFilter::getSobelGX(), border);
             const double dy = level.picture.useFilterPoint(pointX, pointY, PictureFilter::getSobelGY(), border);
             const double w = sqrt(pow(dx,2) + pow(dy,2)) * gaussXY(x,y, sigma);
-
-            const int histogramNum = aroundX/histogramSize*regionSizeX + aroundY/histogramSize;
-
+            //
+            const int currentX = aroundX/histogramSize;
+            const int currentY = aroundY/histogramSize;
+            //
             double angle = atan2(dy, dx) + M_PI - aroundAngle;
             if (angle > 2 * M_PI) {
                 angle = angle - 2 * M_PI;
@@ -103,12 +104,37 @@ unique_ptr<double[]> DescriptorSearch::computeContent(const GaussianPyramid &pyr
 
             double partNum = angle / M_PI / 2 * partsCount;
             partNum = max(0.0, min(partsCount - 0.001, partNum));
-
-            const double partVariation = partNum - (int)partNum;
-            int index = histogramNum * partsCount + (int)round(partNum) % partsCount;
-            content[index] += w * (1 - partVariation);
-            index = (int)(histogramNum * partsCount + partNum + 1) % partsCount;
-            content[index] += w * partVariation;
+            if(!distribution){
+                const int histogramNum = aroundX/histogramSize*regionSizeX + aroundY/histogramSize;
+                const double partVariation = partNum - (int)partNum;
+                int index = histogramNum * partsCount + (int)round(partNum) % partsCount;
+                content[index] += w * (1 - partVariation);
+                index = (int)(histogramNum * partsCount + partNum + 1) % partsCount;
+                content[index] += w * partVariation;
+            }
+            else{
+                for(int offsetX = 0; offsetX<=1 ;offsetX++){ // смещение
+                    const int newX = currentX + offsetX;
+                    if(newX > 0 && newX < regionSizeX){ // проверка на границы
+                        const double centerX = (newX+0.5)*histogramSize; // искомый центр по X
+                        const double wX = 1 - abs(aroundX-centerX)/histogramSize; // весовой коэффициент
+                        for(int offsetY = 0; offsetY <= 1; offsetY++){ // смещение
+                            const int newY = currentY + offsetY;
+                            if(newY > 0 || newY < regionSizeY){ // проверка на границы
+                                const double centerY = (newY+0.5)*histogramSize; // искомый центр по Y
+                                const double wY = 1 - abs(aroundY-centerY)/histogramSize; // весовой коэффициент
+                                const double distributionW = wX * wY;
+                                const int histogramNum = newX/histogramSize*regionSizeX + newY/histogramSize;
+                                const double partVariation = partNum - (int)partNum;
+                                int index = histogramNum * partsCount + (int)round(partNum) % partsCount;
+                                content[index] += w * (1 - partVariation) * distributionW;
+                                index = (int)(histogramNum * partsCount + partNum + 1) % partsCount;
+                                content[index] += w * partVariation * distributionW;
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
     return content;
