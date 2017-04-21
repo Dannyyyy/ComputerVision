@@ -31,12 +31,15 @@ private:
     vector<Descriptor> descriptors;
     static void descriptorNormalize(Descriptor &descriptor);
     static void tresholdTrim(Descriptor &descriptor);
-    static unique_ptr<double[]> computeContent(const GaussianPyramid &pyramid, const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, double aroundAngle, const int regionSizeX, const int regionSizeY, const int partsCount, const int histogramSize, double sigma, bool distribution);
+    static unique_ptr<double[]> computeContent(const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, double aroundAngle, const int regionSizeX, const int regionSizeY, const int partsCount, const int histogramSize);
+    //static unique_ptr<double[]> computeContent(const GaussianPyramid &pyramid, const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, double aroundAngle, const int regionSizeX, const int regionSizeY, const int partsCount, const int histogramSize, double sigma, bool distribution);
     static vector<double> calculateDistance(const DescriptorSearch &f, const DescriptorSearch &s);
     static void findPeaks(int &firstIndex, int &secondIndex, const unique_ptr<double []> &content);
-    static Descriptor computeDescriptor(const GaussianPyramid &pyramid, const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, const unique_ptr<double []> &content, const int index);
+    static Descriptor computeDescriptor(const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, const unique_ptr<double []> &content, const int index);
+    //static Descriptor computeDescriptor(const GaussianPyramid &pyramid, const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, const unique_ptr<double []> &content, const int index);
 public:
-    DescriptorSearch(const GaussianPyramid &pyramid, const Picture &sobelX, const Picture &sobelY, BorderMode border, const vector<InterestPoint> &points);
+    DescriptorSearch(const Picture &sobelX, const Picture &sobelY, BorderMode border, const vector<InterestPoint> &points);
+    //DescriptorSearch(const GaussianPyramid &pyramid, const Picture &sobelX, const Picture &sobelY, BorderMode border, const vector<InterestPoint> &points);
     static vector<NearestDescriptors> searchOverlap(const DescriptorSearch &first,const DescriptorSearch &second);
     static void saveOverlaps(QImage &image, QString filePath, const vector<NearestDescriptors> &overlaps, const int width);
 };
