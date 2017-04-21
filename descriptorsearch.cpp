@@ -90,10 +90,7 @@ unique_ptr<double[]> DescriptorSearch::computeContent(const GaussianPyramid &pyr
             const double dx = level.picture.useFilterPoint(pointX, pointY, PictureFilter::getSobelGX(), border);
             const double dy = level.picture.useFilterPoint(pointX, pointY, PictureFilter::getSobelGY(), border);
             const double w = sqrt(pow(dx,2) + pow(dy,2)) * gaussXY(x,y, sigma);
-            //
-            const int currentX = aroundX/histogramSize;
-            const int currentY = aroundY/histogramSize;
-            //
+
             double angle = atan2(dy, dx) + M_PI - aroundAngle;
             if (angle > 2 * M_PI) {
                 angle = angle - 2 * M_PI;
@@ -113,15 +110,33 @@ unique_ptr<double[]> DescriptorSearch::computeContent(const GaussianPyramid &pyr
                 content[index] += w * partVariation;
             }
             else{
+                const int currentX = aroundX/histogramSize;
+                const int currentY = aroundY/histogramSize;
+
+                int courseX;
+                if(aroundX < (currentX+0.5)*histogramSize - halfSize){
+                    courseX = -1;
+                }
+                else{
+                   courseX = 1;
+                }
+                int courseY;
+                if(aroundY < (currentY+0.5)*histogramSize - halfSize){
+                    courseY = -1;
+                }
+                else{
+                    courseY = 1;
+                }
+
                 for(int offsetX = 0; offsetX<=1 ;offsetX++){ // смещение
                     const int newX = currentX + offsetX;
                     if(newX > 0 && newX < regionSizeX){ // проверка на границы
-                        const double centerX = (newX+0.5)*histogramSize; // искомый центр по X
+                        const double centerX = (newX+0.5)*histogramSize - halfSize; // искомый центр по X
                         const double wX = 1 - abs(aroundX-centerX)/histogramSize; // весовой коэффициент
                         for(int offsetY = 0; offsetY <= 1; offsetY++){ // смещение
                             const int newY = currentY + offsetY;
                             if(newY > 0 || newY < regionSizeY){ // проверка на границы
-                                const double centerY = (newY+0.5)*histogramSize; // искомый центр по Y
+                                const double centerY = (newY+0.5)*histogramSize - halfSize; // искомый центр по Y
                                 const double wY = 1 - abs(aroundY-centerY)/histogramSize; // весовой коэффициент
                                 const double distributionW = wX * wY;
                                 const int histogramNum = newX/histogramSize*regionSizeX + newY/histogramSize;
