@@ -40,3 +40,13 @@ HEADERS  += mainwindow.h \
     descriptorsearch.h
 
 FORMS    += mainwindow.ui
+
+win32: LIBS += -L$$PWD/gslLib/ -lgsl
+
+INCLUDEPATH += $$PWD/gsl
+DEPENDPATH += $$PWD/gsl
+
+win32: LIBS += -L$$PWD/gslLib/ -lgslcblas
+
+INCLUDEPATH += $$PWD/gsl
+DEPENDPATH += $$PWD/gsl
