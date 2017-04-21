@@ -113,14 +113,14 @@ unique_ptr<double[]> DescriptorSearch::computeContent(const GaussianPyramid &pyr
                 const int currentY = aroundY/histogramSize;
 
                 int courseX;
-                if(aroundX < (currentX+0.5)*histogramSize - halfSize){
+                if(aroundX < currentX + histogramSize/2){
                     courseX = -1;
                 }
                 else{
                    courseX = 1;
                 }
                 int courseY;
-                if(aroundY < (currentY+0.5)*histogramSize - halfSize){
+                if(aroundY < currentY + histogramSize/2){
                     courseY = -1;
                 }
                 else{
@@ -238,7 +238,7 @@ vector<NearestDescriptors> DescriptorSearch::searchOverlap(const DescriptorSearc
                 secondOverlapDistance = distance;
             }
         }
-        if(firstOverlapDistance/secondOverlapDistance < 0.7)
+        if(firstOverlapDistance/secondOverlapDistance < 0.6)
          {
             const int fX = f.descriptors[i].x;
             const int fY = f.descriptors[i].y;
