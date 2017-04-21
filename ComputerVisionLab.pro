@@ -29,7 +29,8 @@ SOURCES += main.cpp\
     picturefilter.cpp \
     gaussianpyramid.cpp \
     pointsearch.cpp \
-    descriptorsearch.cpp
+    descriptorsearch.cpp \
+    homographysearch.cpp
 
 HEADERS  += mainwindow.h \
     picture.h \
@@ -37,7 +38,8 @@ HEADERS  += mainwindow.h \
     border.h \
     gaussianpyramid.h \
     pointsearch.h \
-    descriptorsearch.h
+    descriptorsearch.h \
+    homographysearch.h
 
 FORMS    += mainwindow.ui
 
