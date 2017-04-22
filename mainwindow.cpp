@@ -16,6 +16,7 @@
 #include <descriptorsearch.h>
 #include <iostream>
 #include <QPainter>
+#include <homographysearch.h>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -150,6 +151,7 @@ void MainWindow::lab4(){
 }
 
 void MainWindow::lab6(){
+    /*
     const double treshold = 0.075;
     const int pointsCount = 500;
     auto border = BorderMode::ReflectBorderValue;
@@ -160,14 +162,69 @@ void MainWindow::lab6(){
     auto fInterestPoints = new PointSearch(fPicture);
     fInterestPoints->blob(*pyramid, border);
     fInterestPoints->drawAndSaveInterestPointsBlob("C:\\AGTU\\pictures\\blob.jpg");
+    */
+    const double treshold = 0.075;
+        const int pointsCount = 500;
+        auto border = BorderMode::ReflectBorderValue;
+
+        auto fPicture = loadPicture("C:\\AGTU\\pictures\\first.jpg");
+        auto fInterestPoints = new PointSearch(fPicture);
+        fInterestPoints->harris(border, treshold);
+        fInterestPoints->adaptiveNonMaxSuppression(pointsCount);
+
+        auto sPicture = loadPicture("C:\\AGTU\\pictures\\second.jpg");
+        auto sInterestPoints = new PointSearch(sPicture);
+        sInterestPoints->harris(border, treshold);
+        sInterestPoints->adaptiveNonMaxSuppression(pointsCount);
+
+        auto sobelGX = PictureFilter::getSobelGX();
+        auto sobelGY = PictureFilter::getSobelGY();
+
+        auto fSobelX = fPicture.useFilter(sobelGX,border);
+        auto fSobelY = fPicture.useFilter(sobelGY,border);
+        auto sSobelX = sPicture.useFilter(sobelGX,border);
+        auto sSobelY = sPicture.useFilter(sobelGY,border);
+
+        auto fPoints = fInterestPoints->Points();
+        auto sPoints = sInterestPoints->Points();
+
+        auto fDescriptors = new DescriptorSearch(fSobelX, fSobelY, border, fPoints);
+        auto sDescriptors = new DescriptorSearch(sSobelX, sSobelY, border, sPoints);
+
+        vector<NearestDescriptors> overlaps = DescriptorSearch::searchOverlap(*fDescriptors, *sDescriptors);
+
+        // lab 5
+        const int fHeight = fPicture.getHeight();
+        const int fWidth = fPicture.getWidth();
+        const int sHeight = sPicture.getHeight();
+        const int sWidth = sPicture.getWidth();
+        const int rHeight = max(fHeight,sHeight);
+        const int rWidth = fWidth + sWidth;
+        QImage resultImage = QImage(rWidth, rHeight, QImage::Format_RGB32);
+
+        for (int x = 0; x < fHeight; x++) {
+           for (int y = 0; y < fWidth; y++) {
+                   int intensity = (int)(fPicture.getIntensity(x, y) * 255);
+                   resultImage.setPixel(y, x, qRgb(intensity, intensity, intensity));
+           }
+        }
+        for (int x = 0; x < sHeight; x++) {
+           for (int y = 0; y < sWidth; y++) {
+                   int intensity = (int)(sPicture.getIntensity(x, y) * 255);
+                   resultImage.setPixel(y+fWidth, x, qRgb(intensity, intensity, intensity));
+           }
+        }
+        DescriptorSearch::saveOverlaps(resultImage,"C:\\AGTU\\pictures\\",overlaps,fWidth);
+        // lab 8
+        auto ransac = HomographySearch().ransac(DescriptorSearch::searchOverlap(*fDescriptors, *sDescriptors));
 }
 
 
 //image load
 void MainWindow::on_pushButton_clicked()
 {
-    lab4();
-    //lab6();
+    //lab4();
+    lab6();
     /*
     const QString filePath = QFileDialog::getOpenFileName(0, "Выбор изображения...", "", "*.jpg");
     if(filePath != "")
