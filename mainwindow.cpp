@@ -216,7 +216,9 @@ void MainWindow::lab6(){
         }
         DescriptorSearch::saveOverlaps(resultImage,"C:\\AGTU\\pictures\\",overlaps,fWidth);
         // lab 8
-        auto ransac = HomographySearch().ransac(DescriptorSearch::searchOverlap(*fDescriptors, *sDescriptors));
+        auto homography = HomographySearch();
+        auto ransac = homography.ransac(overlaps);
+        //
 }
 
 
