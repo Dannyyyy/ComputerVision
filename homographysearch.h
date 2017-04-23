@@ -9,7 +9,7 @@
 
 class HomographySearch{
 private:
-    const int repeats = 10000;
+    const int repeats = 1000;
 public:
     vector<double> ransac(vector<NearestDescriptors> overlaps);
 };

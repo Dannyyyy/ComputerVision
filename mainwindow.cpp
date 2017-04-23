@@ -218,8 +218,21 @@ void MainWindow::lab6(){
         // lab 8
         auto homography = HomographySearch();
         auto ransac = homography.ransac(overlaps);
-        //
-}
+
+        const int resultWidth = fWidth + sWidth;
+        const int resultHeight = fHeight + sHeight;
+
+        QImage qImage(resultWidth, resultHeight, QImage::Format::Format_RGB32);
+        QPainter painter(&qImage);
+        painter.drawImage(0, 0, fPicture.getImage());
+        painter.setRenderHint(QPainter::SmoothPixmapTransform);
+        painter.setRenderHint(QPainter::Antialiasing);
+        QTransform ransacTransform(ransac[0], ransac[1], ransac[2], ransac[3],
+                                ransac[4], ransac[5], ransac[6], ransac[7], ransac[8]);
+        cout<<ransac[0]<<" : "<<ransac[1]<<" : "<<ransac[2]<<" : "<<ransac[3]<<" : "<<ransac[4]<<" : "<<ransac[5]<<" : "<<ransac[6]<<" : "<<ransac[7]<<" : "<<ransac[8]<<endl;
+        painter.setTransform(ransacTransform);
+        painter.drawImage(0, 0, sPicture.getImage());
+        qImage.save("C:\\AGTU\\pictures\\ransac.jpg", "jpg");}
 
 
 //image load
