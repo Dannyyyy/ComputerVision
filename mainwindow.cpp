@@ -219,8 +219,8 @@ void MainWindow::lab6(){
         auto homography = HomographySearch();
         auto ransac = homography.ransac(overlaps);
 
-        const int resultWidth = fWidth + sWidth;
-        const int resultHeight = fHeight + sHeight;
+        const int resultWidth = fWidth + sWidth; //+ 100;
+        const int resultHeight = fHeight + sHeight; //+ 100;
 
         QImage qImage(resultWidth, resultHeight, QImage::Format::Format_RGB32);
         QPainter painter(&qImage);
