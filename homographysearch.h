@@ -11,7 +11,7 @@ class HomographySearch{
 private:
     const int repeats = 1000;
 public:
-    vector<double> ransac(vector<NearestDescriptors> overlaps);
+    vector<double> ransac(const vector<NearestDescriptors> &overlaps);
 };
 
 #endif // HOMOGRAPHYSEARCH_H

@@ -24,7 +24,7 @@ vector<int> getRandomIndexes(const int size, const int count) {
     return indexes;
 }
 
-void calculateMatrixA(gsl_matrix *A, vector<NearestDescriptors> overlaps, vector<int> indexes)
+void calculateMatrixA(gsl_matrix *A, const vector<NearestDescriptors> &overlaps, const vector<int> &indexes)
 {
     const int sizeMatrixA = A->size1;
     const int halfSize = sizeMatrixA/2;
@@ -105,7 +105,7 @@ vector<int> getInliers(gsl_matrix* H, const vector<NearestDescriptors> overlaps,
     return currentInliers;
 }
 
-vector<double> HomographySearch::ransac(vector<NearestDescriptors> overlaps) {
+vector<double> HomographySearch::ransac(const vector<NearestDescriptors> &overlaps) {
     gsl_matrix* A = gsl_matrix_alloc(8,9);
     gsl_matrix* AT = gsl_matrix_alloc(9,9);
     gsl_matrix* U = gsl_matrix_alloc(9,9);
