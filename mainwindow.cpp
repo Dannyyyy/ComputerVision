@@ -164,75 +164,82 @@ void MainWindow::lab6(){
     fInterestPoints->drawAndSaveInterestPointsBlob("C:\\AGTU\\pictures\\blob.jpg");
     */
     const double treshold = 0.075;
-        const int pointsCount = 500;
-        auto border = BorderMode::ReflectBorderValue;
+    const int pointsCount = 1500;
+    auto border = BorderMode::ReflectBorderValue;
 
-        auto fPicture = loadPicture("C:\\AGTU\\pictures\\first.jpg");
-        auto fInterestPoints = new PointSearch(fPicture);
-        fInterestPoints->harris(border, treshold);
-        fInterestPoints->adaptiveNonMaxSuppression(pointsCount);
+    auto fPicture = loadPicture("C:\\AGTU\\pictures\\first.jpg");
+    auto fInterestPoints = new PointSearch(fPicture);
+    fInterestPoints->harris(border, treshold);
+    fInterestPoints->adaptiveNonMaxSuppression(pointsCount);
 
-        auto sPicture = loadPicture("C:\\AGTU\\pictures\\second.jpg");
-        auto sInterestPoints = new PointSearch(sPicture);
-        sInterestPoints->harris(border, treshold);
-        sInterestPoints->adaptiveNonMaxSuppression(pointsCount);
+    auto sPicture = loadPicture("C:\\AGTU\\pictures\\second.jpg");
+    auto sInterestPoints = new PointSearch(sPicture);
+    sInterestPoints->harris(border, treshold);
+    sInterestPoints->adaptiveNonMaxSuppression(pointsCount);
 
-        auto sobelGX = PictureFilter::getSobelGX();
-        auto sobelGY = PictureFilter::getSobelGY();
+    auto sobelGX = PictureFilter::getSobelGX();
+    auto sobelGY = PictureFilter::getSobelGY();
 
-        auto fSobelX = fPicture.useFilter(sobelGX,border);
-        auto fSobelY = fPicture.useFilter(sobelGY,border);
-        auto sSobelX = sPicture.useFilter(sobelGX,border);
-        auto sSobelY = sPicture.useFilter(sobelGY,border);
+    auto fSobelX = fPicture.useFilter(sobelGX,border);
+    auto fSobelY = fPicture.useFilter(sobelGY,border);
+    auto sSobelX = sPicture.useFilter(sobelGX,border);
+    auto sSobelY = sPicture.useFilter(sobelGY,border);
 
-        auto fPoints = fInterestPoints->Points();
-        auto sPoints = sInterestPoints->Points();
+    auto fPoints = fInterestPoints->Points();
+    auto sPoints = sInterestPoints->Points();
 
-        auto fDescriptors = new DescriptorSearch(fSobelX, fSobelY, border, fPoints);
-        auto sDescriptors = new DescriptorSearch(sSobelX, sSobelY, border, sPoints);
+    auto fDescriptors = new DescriptorSearch(fSobelX, fSobelY, border, fPoints);
+    auto sDescriptors = new DescriptorSearch(sSobelX, sSobelY, border, sPoints);
 
-        vector<NearestDescriptors> overlaps = DescriptorSearch::searchOverlap(*fDescriptors, *sDescriptors);
+    vector<NearestDescriptors> overlaps = DescriptorSearch::searchOverlap(*fDescriptors, *sDescriptors);
 
-        // lab 5
-        const int fHeight = fPicture.getHeight();
-        const int fWidth = fPicture.getWidth();
-        const int sHeight = sPicture.getHeight();
-        const int sWidth = sPicture.getWidth();
-        const int rHeight = max(fHeight,sHeight);
-        const int rWidth = fWidth + sWidth;
-        QImage resultImage = QImage(rWidth, rHeight, QImage::Format_RGB32);
+    // lab 5
+    const int fHeight = fPicture.getHeight();
+    const int fWidth = fPicture.getWidth();
+    const int sHeight = sPicture.getHeight();
+    const int sWidth = sPicture.getWidth();
+    const int rHeight = max(fHeight,sHeight);
+    const int rWidth = fWidth + sWidth;
+    QImage resultImage = QImage(rWidth, rHeight, QImage::Format_RGB32);
 
-        for (int x = 0; x < fHeight; x++) {
-           for (int y = 0; y < fWidth; y++) {
-                   int intensity = (int)(fPicture.getIntensity(x, y) * 255);
-                   resultImage.setPixel(y, x, qRgb(intensity, intensity, intensity));
-           }
-        }
-        for (int x = 0; x < sHeight; x++) {
-           for (int y = 0; y < sWidth; y++) {
-                   int intensity = (int)(sPicture.getIntensity(x, y) * 255);
-                   resultImage.setPixel(y+fWidth, x, qRgb(intensity, intensity, intensity));
-           }
-        }
-        DescriptorSearch::saveOverlaps(resultImage,"C:\\AGTU\\pictures\\",overlaps,fWidth);
-        // lab 8
-        auto homography = HomographySearch();
-        auto ransac = homography.ransac(overlaps);
-
-        const int resultWidth = fWidth + sWidth; //+ 100;
-        const int resultHeight = fHeight + sHeight; //+ 100;
+    for (int x = 0; x < fHeight; x++) {
+       for (int y = 0; y < fWidth; y++) {
+               int intensity = (int)(fPicture.getIntensity(x, y) * 255);
+               resultImage.setPixel(y, x, qRgb(intensity, intensity, intensity));
+       }
+    }
+    for (int x = 0; x < sHeight; x++) {
+       for (int y = 0; y < sWidth; y++) {
+               int intensity = (int)(sPicture.getIntensity(x, y) * 255);
+               resultImage.setPixel(y+fWidth, x, qRgb(intensity, intensity, intensity));
+       }
+    }
+    DescriptorSearch::saveOverlaps(resultImage,"C:\\AGTU\\pictures\\",overlaps,fWidth);
+    // lab 8
+    QImage fResultPicture("C:\\AGTU\\pictures\\first.jpg");
+    QImage sResultPicture("C:\\AGTU\\pictures\\second.jpg");
+    auto homography = HomographySearch();
+    auto ransac = homography.ransac(overlaps);
+    if (ransac.size() != 0){
+        const int resultWidth = max(fWidth, sWidth) + 100;// sWidth;
+        const int resultHeight = max(fHeight, sHeight) + 100;// sHeight
 
         QImage qImage(resultWidth, resultHeight, QImage::Format::Format_RGB32);
         QPainter painter(&qImage);
-        painter.drawImage(0, 0, fPicture.getImage());
+        painter.drawImage(0, 0, fResultPicture);
         painter.setRenderHint(QPainter::SmoothPixmapTransform);
         painter.setRenderHint(QPainter::Antialiasing);
         QTransform ransacTransform(ransac[0], ransac[1], ransac[2], ransac[3],
                                 ransac[4], ransac[5], ransac[6], ransac[7], ransac[8]);
         cout<<ransac[0]<<" : "<<ransac[1]<<" : "<<ransac[2]<<" : "<<ransac[3]<<" : "<<ransac[4]<<" : "<<ransac[5]<<" : "<<ransac[6]<<" : "<<ransac[7]<<" : "<<ransac[8]<<endl;
         painter.setTransform(ransacTransform);
-        painter.drawImage(0, 0, sPicture.getImage());
-        qImage.save("C:\\AGTU\\pictures\\ransac.jpg", "jpg");}
+        painter.drawImage(0, 0, sResultPicture);
+        qImage.save("C:\\AGTU\\pictures\\ransac.jpg", "jpg");
+    }
+    else{
+        cout<<"Matches count < 4"<<endl;
+    }
+}
 
 
 //image load

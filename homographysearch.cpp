@@ -1,28 +1,7 @@
 #include <homographysearch.h>
+#include <random>
 
 using namespace std;
-
-vector<int> getRandomIndexes(const int size, const int count) {
-    qsrand(QTime::currentTime().msec());
-
-    vector<int> indexes;
-    indexes.resize(count);
-
-    for (int i = 0; i < count; ++i)
-        indexes[i] = qrand() % size;
-
-    repeat:
-    for (int i = 0; i < count-1; ++i){
-        for (int j = i+1; j < count; ++j){
-            if (indexes[i] == indexes[j]){
-                indexes[j] = qrand() % size;
-                goto repeat;
-            }
-        }
-    }
-
-    return indexes;
-}
 
 void calculateMatrixA(gsl_matrix *A, const vector<NearestDescriptors> &overlaps, const vector<int> &indexes)
 {
@@ -106,6 +85,11 @@ vector<int> getInliers(gsl_matrix* H, const vector<NearestDescriptors> overlaps,
 }
 
 vector<double> HomographySearch::ransac(const vector<NearestDescriptors> &overlaps) {
+    const int overlapsCount = overlaps.size();
+    if(overlapsCount < 4){
+        return vector<double>(0);
+    }
+
     gsl_matrix* A = gsl_matrix_alloc(8,9);
     gsl_matrix* AT = gsl_matrix_alloc(9,9);
     gsl_matrix* U = gsl_matrix_alloc(9,9);
@@ -116,10 +100,13 @@ vector<double> HomographySearch::ransac(const vector<NearestDescriptors> &overla
 
     vector<int> wellInliers;
 
+    random_device randomDevice;
+    mt19937 mtRand(randomDevice());
+    vector<int> indexes(overlapsCount);
+    iota(indexes.begin(), indexes.end(), 0);
+
     for (int repeat = 0; repeat < repeats; repeat++) {
-        vector<int> indexes;
-        indexes.resize(4);
-        indexes = getRandomIndexes(overlaps.size(), 4);
+        shuffle(indexes.begin(), indexes.end(), mtRand);
         calculateMatrixA(A, overlaps, indexes);
         dlt(A, AT, U, H);
 
