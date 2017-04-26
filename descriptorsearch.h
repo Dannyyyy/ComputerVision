@@ -40,7 +40,7 @@ private:
 public:
     DescriptorSearch(const Picture &sobelX, const Picture &sobelY, BorderMode border, const vector<InterestPoint> &points);
     //DescriptorSearch(const GaussianPyramid &pyramid, const Picture &sobelX, const Picture &sobelY, BorderMode border, const vector<InterestPoint> &points);
-    static vector<NearestDescriptors> searchOverlap(const DescriptorSearch &first,const DescriptorSearch &second);
+    static vector<NearestDescriptors> searchOverlap(const DescriptorSearch &first,const DescriptorSearch &second, double &best);
     static void saveOverlaps(QImage &image, QString filePath, const vector<NearestDescriptors> &overlaps, const int width);
 };
 

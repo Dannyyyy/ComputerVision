@@ -23,6 +23,7 @@ private:
     vector<InterestPoint> points;
 public:
     PointSearch(const Picture &picture): picture(picture){}
+    PointSearch(){}
     void moravek(BorderMode border, double treshold);
     void harris(BorderMode border, double treshold);
     void searchInterestPoints(Picture &resultPicture, BorderMode border, double treshold);

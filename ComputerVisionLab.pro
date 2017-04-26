@@ -30,7 +30,8 @@ SOURCES += main.cpp\
     gaussianpyramid.cpp \
     pointsearch.cpp \
     descriptorsearch.cpp \
-    homographysearch.cpp
+    homographysearch.cpp \
+    cvhelper.cpp
 
 HEADERS  += mainwindow.h \
     picture.h \
@@ -39,7 +40,8 @@ HEADERS  += mainwindow.h \
     gaussianpyramid.h \
     pointsearch.h \
     descriptorsearch.h \
-    homographysearch.h
+    homographysearch.h \
+    cvhelper.h
 
 FORMS    += mainwindow.ui
 

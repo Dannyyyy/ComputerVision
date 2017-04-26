@@ -152,7 +152,7 @@ vector<double> DescriptorSearch::calculateDistance(const DescriptorSearch &f, co
     return distances;
 }
 
-vector<NearestDescriptors> DescriptorSearch::searchOverlap(const DescriptorSearch &f,const DescriptorSearch &s){
+vector<NearestDescriptors> DescriptorSearch::searchOverlap(const DescriptorSearch &f,const DescriptorSearch &s, double &best){
     const int fDescriptorsCount = f.descriptors.size();
     const int sDescriptorsCount = s.descriptors.size();
     const double treshhold = 0.2;
@@ -192,8 +192,12 @@ vector<NearestDescriptors> DescriptorSearch::searchOverlap(const DescriptorSearc
                 secondOverlapDistance = distance;
             }
         }
-        if(firstOverlapDistance/secondOverlapDistance < 0.7)
+        double matchProc = firstOverlapDistance/secondOverlapDistance;
+        if(matchProc < 0.7)
          {
+            if(matchProc < best){
+                best = matchProc;
+            }
             const int fX = f.descriptors[i].x;
             const int fY = f.descriptors[i].y;
             const int sX = s.descriptors[firstOverlap].x;

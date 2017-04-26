@@ -4,7 +4,9 @@
 #include <QMainWindow>
 #include <picture.h>
 #include <gaussianpyramid.h>
+#include <descriptorsearch.h>
 #include <memory>
+#include <cvhelper.h>
 
 using namespace std;
 
@@ -24,7 +26,9 @@ public:
     void lab4();
     void lab6();
     Picture loadPicture(QString filePath);
+    Picture loadQImage(const QImage &imageInitial);
     void outputPyramid(const GaussianPyramid &pyramid, QString filePath) const;
+    void applyHomography(const QImage &first, const QImage &second, const vector<NearestDescriptors> &overlaps, QString filePath);
     ~MainWindow();
 
 private slots:
