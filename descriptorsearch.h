@@ -38,6 +38,8 @@ private:
     static Descriptor computeDescriptor(const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, const unique_ptr<double []> &content, const int index);
     //static Descriptor computeDescriptor(const GaussianPyramid &pyramid, const Picture &sobelX, const Picture &sobelY, const InterestPoint &point, BorderMode border, const unique_ptr<double []> &content, const int index);
 public:
+    DescriptorSearch(DescriptorSearch &&picture) = default;
+    DescriptorSearch& operator=(DescriptorSearch&& otherPicture) = default;
     DescriptorSearch(const Picture &sobelX, const Picture &sobelY, BorderMode border, const vector<InterestPoint> &points);
     //DescriptorSearch(const GaussianPyramid &pyramid, const Picture &sobelX, const Picture &sobelY, BorderMode border, const vector<InterestPoint> &points);
     static vector<NearestDescriptors> searchOverlap(const DescriptorSearch &first,const DescriptorSearch &second, double &best);

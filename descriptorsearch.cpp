@@ -152,7 +152,7 @@ vector<double> DescriptorSearch::calculateDistance(const DescriptorSearch &f, co
     return distances;
 }
 
-vector<NearestDescriptors> DescriptorSearch::searchOverlap(const DescriptorSearch &f,const DescriptorSearch &s, double &best){
+vector<NearestDescriptors> DescriptorSearch::searchOverlap(const DescriptorSearch &f, const DescriptorSearch &s, double &best){
     const int fDescriptorsCount = f.descriptors.size();
     const int sDescriptorsCount = s.descriptors.size();
     const double treshhold = 0.2;

@@ -11,6 +11,7 @@ class PictureFilterContent{
     int width;
 public:
     unique_ptr<double []> content;
+    PictureFilterContent(){}
     PictureFilterContent(int height, int width){
         this->height = height;
         this->width = width;

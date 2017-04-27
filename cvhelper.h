@@ -15,6 +15,7 @@ class CVHelper{
   public:
 
     static void preparePointSearch(PointSearch &pointSearch, BorderMode border, double treshold, int pointsCount);
+    static QString getFilePath(const int index);
 };
 
 

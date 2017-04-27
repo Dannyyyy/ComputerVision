@@ -197,6 +197,28 @@ void MainWindow::lab6(){
     auto sobelGX = PictureFilter::getSobelGX();
     auto sobelGY = PictureFilter::getSobelGY();
 
+    vector<Picture> initialPictures;
+    initialPictures.resize(3);
+    vector<PointSearch> interestPoints;
+    interestPoints.resize(3);
+    vector<PictureFilterContent> sobelX;
+    sobelX.resize(3);
+    vector<PictureFilterContent> sobelY;
+    sobelY.resize(3);
+    vector<DescriptorSearch*> descriptors;
+    descriptors.resize(3);
+
+    for(int i=0;i<3;i++){
+        auto initialPicture = loadPicture(CVHelper::getFilePath(i));
+        auto initialInterestPoints = new PointSearch(initialPicture);
+        CVHelper::preparePointSearch(*initialInterestPoints, border, treshold, pointsCount);
+        auto initialPoints = initialInterestPoints->Points();
+        auto initialSobelX = initialPicture.useFilter(sobelGX,border);
+        auto initialSobelY = initialPicture.useFilter(sobelGY,border);
+        auto initialDescriptors = new DescriptorSearch(initialSobelX, initialSobelY, border, initialPoints);
+        descriptors[i] = initialDescriptors;
+    }
+    /*
     auto fPicture = loadPicture(fPictureFilePath);
     auto fInterestPoints = new PointSearch(fPicture);
     CVHelper::preparePointSearch(*fInterestPoints, border, treshold, pointsCount);
@@ -220,12 +242,12 @@ void MainWindow::lab6(){
     auto tSobelX = tPicture.useFilter(sobelGX,border);
     auto tSobelY = tPicture.useFilter(sobelGY,border);
     auto tDescriptors = new DescriptorSearch(tSobelX, tSobelY, border, tPoints);
-
+    */
     double bestFS = 1;
     double bestFT = 1;
 
-    vector<NearestDescriptors> overlapsFS = DescriptorSearch::searchOverlap(*fDescriptors, *sDescriptors, bestFS);
-    vector<NearestDescriptors> overlapsFT = DescriptorSearch::searchOverlap(*fDescriptors, *tDescriptors, bestFT);
+    vector<NearestDescriptors> overlapsFS = DescriptorSearch::searchOverlap(*descriptors[0], *descriptors[1], bestFS);
+    vector<NearestDescriptors> overlapsFT = DescriptorSearch::searchOverlap(*descriptors[0], *descriptors[2], bestFT);
 
     cout<<"FS: "<<bestFS<<endl;
     cout<<"FT: "<<bestFT<<endl;
@@ -241,22 +263,22 @@ void MainWindow::lab6(){
     }
     this->applyHomography(fResultPicture, sResultPicture, overlapsFS, neutralFilePath);
     //
-    fPicture = loadPicture(neutralFilePath);
-    fInterestPoints = new PointSearch(fPicture);
+    auto fPicture = loadPicture(neutralFilePath);
+    auto fInterestPoints = new PointSearch(fPicture);
     CVHelper::preparePointSearch(*fInterestPoints, border, treshold, pointsCount);
-    fPoints = fInterestPoints->Points();
-    fSobelX = fPicture.useFilter(sobelGX,border);
-    fSobelY = fPicture.useFilter(sobelGY,border);
+    auto fPoints = fInterestPoints->Points();
+    auto fSobelX = fPicture.useFilter(sobelGX,border);
+    auto fSobelY = fPicture.useFilter(sobelGY,border);
     fResultPicture = QImage(neutralFilePath);
-    fDescriptors = new DescriptorSearch(fSobelX, fSobelY, border, fPoints);
+    auto fDescriptors = new DescriptorSearch(fSobelX, fSobelY, border, fPoints);
 
     vector<NearestDescriptors> overlaps;
     if(bestFS < bestFT){
-        overlaps = DescriptorSearch::searchOverlap(*fDescriptors, *tDescriptors, bestFS);
+        overlaps = DescriptorSearch::searchOverlap(*fDescriptors, *descriptors[2], bestFS);
         sResultPicture = QImage(tPictureFilePath);
     }
     else{
-        overlaps = DescriptorSearch::searchOverlap(*fDescriptors, *sDescriptors, bestFT);
+        overlaps = DescriptorSearch::searchOverlap(*fDescriptors, *descriptors[1], bestFT);
         sResultPicture = QImage(sPictureFilePath);
     }
     this->applyHomography(fResultPicture, sResultPicture, overlaps, resultFilePath);
